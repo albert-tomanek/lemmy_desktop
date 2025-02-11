@@ -32,7 +32,10 @@ namespace Lemmy.Desktop
 		[GtkChild] unowned Gtk.Paned paned1;
 		[GtkChild] unowned Gtk.Paned paned2;
 
+		[GtkChild] unowned Gtk.ScrolledWindow posts_scrolledwindow;
+		[GtkChild] unowned Gtk.SingleSelection posts_selection;
 		[GtkChild] unowned Gtk.ColumnView posts_list;
+
 		//  [GtkChild] unowned GLib.MenuModel app_menu;
 		[GtkChild] unowned Gtk.ListView comms_list;
 		[GtkChild] unowned Gtk.SingleSelection comm_selection;
@@ -89,7 +92,6 @@ namespace Lemmy.Desktop
 
 			// posts_list
 
-			this.posts_list.model = new Gtk.SingleSelection(null);
 			this.posts_list.append_column(new Gtk.ColumnViewColumn(null, null) {
 				title = "Title",
 				expand = true,
@@ -132,6 +134,12 @@ namespace Lemmy.Desktop
 				)
 			});
 
+			this.posts_scrolledwindow.edge_reached.connect((pos) => {
+				if (this.posts_selection.model != null)
+					if (pos == Gtk.PositionType.BOTTOM)
+						(this.posts_selection.model as GroupIter).get_more_posts.begin();
+			});
+
 			// comms_list
 
 			this.comm_selection.model = this.u_subscribed;
@@ -139,9 +147,9 @@ namespace Lemmy.Desktop
 				var grp = this.comm_selection.selected_item as Handles.Community;
 
 				var gi = new GroupIter(sess, grp.instance, grp.name);
-				gi.get_more_posts.begin();
+				gi.get_more_posts.begin((a, b) => on_more_posts_gotten(a, b, gi));
 	
-				(this.posts_list.model as Gtk.SingleSelection).model = gi;
+				posts_selection.model = gi;
 			});
 
 			this.comms_list.factory = new_signal_list_item_factory(
@@ -159,6 +167,16 @@ namespace Lemmy.Desktop
 				},
 				null
 			);
+		}
+
+		void on_more_posts_gotten(Object? _, AsyncResult async_ctx, GroupIter gi)
+		{
+			// This is called at the end of the async function loading posts, and it keeps calling it again until the screen is full.
+			int n_loaded = gi.get_more_posts.end(async_ctx);
+
+			stdout.printf("======== %d %d %d\n", this.posts_list.get_height(), this.posts_scrolledwindow.get_height(), n_loaded);
+			if (this.posts_list.get_height() < this.posts_scrolledwindow.get_height() && n_loaded > 0)	// (The n_loaded check is to stop this loop in case the community has fewer posts than fit on the screen)
+				gi.get_more_posts.begin((a, b) => on_more_posts_gotten(a, b, gi));		
 		}
 
 		class CommunityListRow : Gtk.Box

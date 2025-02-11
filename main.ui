@@ -50,11 +50,15 @@
                   </object>
                 </child>
                 <child>
-                  <object class="GtkScrolledWindow">
+                  <object class="GtkScrolledWindow" id="posts_scrolledwindow">
                     <property name="hexpand">True</property>
                     <property name="vexpand">True</property>
                     <child>
-                      <object class="GtkColumnView" id="posts_list"/>
+                      <object class="GtkColumnView" id="posts_list">
+                        <property name="model">
+                          <object class="GtkSingleSelection" id="posts_selection"/>
+                        </property>
+                      </object>
                     </child>
                   </object>
                 </child>

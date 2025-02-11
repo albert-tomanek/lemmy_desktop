@@ -94,7 +94,7 @@ namespace Lemmy.API
             this.comm = comm;
         }
 
-        public async void get_more_posts()
+        public async int get_more_posts()
         {
             var _old_length = get_n_items();
 
@@ -134,6 +134,7 @@ namespace Lemmy.API
             r.end_member();
             
             this.items_changed(_old_length, 0, n_items);
+            return n_items;
         }
 
         // ListModel
