@@ -1,0 +1,17 @@
+<schemalist>
+  <schema id="com.github.albert-tomanek.lemmy-desktop" path="/com/github/albert-tomanek/lemmy-desktop/" gettext-domain="flyby">
+
+    <key name="paned1-pos" type="i">
+      <default>200</default>
+      <!-- <summary>How much the red channel should be boosted by in anaglyphs.</summary>
+      <description>
+        In some anaglyphic glasses the red filter is darker than the blue filter. Boosting the red channel can compensate for this. This property is the coefficient that the red channel is multiplied by.
+      </description> -->
+    </key>
+
+    <key name="paned2-pos" type="i">
+      <default>300</default>
+    </key>
+
+  </schema>
+</schemalist>

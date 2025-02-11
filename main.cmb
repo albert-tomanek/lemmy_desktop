@@ -1,0 +1,44 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<!DOCTYPE cambalache-project SYSTEM "cambalache-project.dtd">
+<cambalache-project version="0.17.3" target_tk="gtk-4.0">
+  <ui>
+	(2,1,"example","main.ui",None,None,None,None,None,None,None)
+  </ui>
+  <ui_library>
+	(2,"gtk","4.6",None)
+  </ui_library>
+  <object>
+	(2,1,"GtkApplicationWindow","LemmyDesktopMainWindow",None,None,None,None,None,None,None),
+	(2,2,"GtkPaned","paned1",1,None,None,None,-1,None,None),
+	(2,3,"GtkBox",None,2,None,None,None,-1,None,None),
+	(2,4,"GtkLabel",None,3,None,None,None,-1,None,None),
+	(2,5,"GtkPaned","paned2",2,None,None,None,-1,None,None),
+	(2,6,"GtkLabel",None,5,None,None,None,-1,None,None),
+	(2,7,"GtkBox",None,5,None,None,None,-1,None,None),
+	(2,8,"GtkScrolledWindow",None,7,None,None,None,-1,None,None)
+  </object>
+  <object_property>
+	(2,1,"GtkWidget","name","FlyBy",None,None,None,None,None,None,None,None,None),
+	(2,1,"GtkWindow","default-height","500",None,None,None,None,None,None,None,None,None),
+	(2,1,"GtkWindow","default-width","700",None,None,None,None,None,None,None,None,None),
+	(2,1,"GtkWindow","title","Lemmy",None,None,None,None,None,None,None,None,None),
+	(2,1,"GtkWindow","titlebar",None,None,None,None,None,None,None,None,None,None),
+	(2,2,"GtkPaned","end-child",None,None,None,None,None,5,None,None,None,None),
+	(2,2,"GtkPaned","resize-start-child","False",None,None,None,None,None,None,None,None,None),
+	(2,2,"GtkPaned","shrink-start-child","False",None,None,None,None,None,None,None,None,None),
+	(2,2,"GtkPaned","start-child",None,None,None,None,None,3,None,None,None,None),
+	(2,3,"GtkOrientable","orientation","vertical",None,None,None,None,None,None,None,None,None),
+	(2,3,"GtkWidget","width-request","200",None,None,None,None,None,None,None,None,None),
+	(2,4,"GtkLabel","label","comms",None,None,None,None,None,None,None,None,None),
+	(2,4,"GtkWidget","hexpand","True",None,None,None,None,None,None,None,None,None),
+	(2,4,"GtkWidget","vexpand","True",None,None,None,None,None,None,None,None,None),
+	(2,5,"GtkPaned","end-child",None,None,None,None,None,6,None,None,None,None),
+	(2,5,"GtkPaned","start-child",None,None,None,None,None,7,None,None,None,None),
+	(2,6,"GtkLabel","label","post",None,None,None,None,None,None,None,None,None),
+	(2,7,"GtkOrientable","orientation","vertical",None,None,None,None,None,None,None,None,None),
+	(2,7,"GtkWidget","hexpand","True",None,None,None,None,None,None,None,None,None),
+	(2,7,"GtkWidget","vexpand","True",None,None,None,None,None,None,None,None,None),
+	(2,8,"GtkWidget","hexpand","True",None,None,None,None,None,None,None,None,None),
+	(2,8,"GtkWidget","vexpand","True",None,None,None,None,None,None,None,None,None)
+  </object_property>
+</cambalache-project>
