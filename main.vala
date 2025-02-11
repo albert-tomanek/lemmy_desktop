@@ -12,6 +12,9 @@ namespace LemmyDesktop
 			var win = new MainWindow();
 			this.add_window(win);
 			win.show();
+
+			var gi = new GroupIter("lemmy.world", "asklemmy");
+			gi.get_posts.begin();
 		}
 
 		public static int main(string[] args)
@@ -26,8 +29,8 @@ namespace LemmyDesktop
 	class MainWindow : Gtk.ApplicationWindow
 	{
 		/* UI */
-		[GtkChild] Gtk.Paned paned1;
-		[GtkChild] Gtk.Paned paned2;
+		[GtkChild] unowned Gtk.Paned paned1;
+		[GtkChild] unowned Gtk.Paned paned2;
 
 		construct {
 			//  this.add_action_entries({
