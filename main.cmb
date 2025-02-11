@@ -15,9 +15,14 @@
 	(2,5,"GtkPaned","paned2",2,None,None,None,-1,None,None),
 	(2,6,"GtkLabel",None,5,None,None,None,-1,None,None),
 	(2,7,"GtkBox",None,5,None,None,None,-1,None,None),
-	(2,8,"GtkScrolledWindow",None,7,None,None,None,-1,None,None)
+	(2,8,"GtkScrolledWindow",None,7,None,None,None,-1,None,None),
+	(2,9,"GtkColumnView","posts_list",8,None,None,None,-1,None,None),
+	(2,10,"(menu)","app_menu",None,None,None,None,-1,None,None),
+	(2,11,"(item)",None,10,None,None,None,-1,None,None),
+	(2,12,"(item)",None,10,None,None,None,-1,None,None)
   </object>
   <object_property>
+	(2,1,"GtkApplicationWindow","show-menubar","True",None,None,None,None,None,None,None,None,None),
 	(2,1,"GtkWidget","name","FlyBy",None,None,None,None,None,None,None,None,None),
 	(2,1,"GtkWindow","default-height","500",None,None,None,None,None,None,None,None,None),
 	(2,1,"GtkWindow","default-width","700",None,None,None,None,None,None,None,None,None),
@@ -39,6 +44,8 @@
 	(2,7,"GtkWidget","hexpand","True",None,None,None,None,None,None,None,None,None),
 	(2,7,"GtkWidget","vexpand","True",None,None,None,None,None,None,None,None,None),
 	(2,8,"GtkWidget","hexpand","True",None,None,None,None,None,None,None,None,None),
-	(2,8,"GtkWidget","vexpand","True",None,None,None,None,None,None,None,None,None)
+	(2,8,"GtkWidget","vexpand","True",None,None,None,None,None,None,None,None,None),
+	(2,11,"(item)","label","&amp;Settings",None,None,None,None,None,None,None,None,None),
+	(2,12,"(item)","label","&amp;Quit",None,None,None,None,None,None,None,None,None)
   </object_property>
 </cambalache-project>

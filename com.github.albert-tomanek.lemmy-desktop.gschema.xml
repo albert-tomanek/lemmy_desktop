@@ -1,5 +1,15 @@
 <schemalist>
-  <schema id="com.github.albert-tomanek.lemmy-desktop" path="/com/github/albert-tomanek/lemmy-desktop/" gettext-domain="flyby">
+  <schema id="com.github.albert-tomanek.lemmy-desktop" path="/com/github/albert-tomanek/lemmy-desktop/">
+    <key name="blocked-instances" type="as">
+      <default>[]</default>
+    </key>
+    <key name="blocked-words" type="as">
+      <default>[]</default>
+    </key>
+    <key name="blocked-comms" type="as">
+      <default>[]</default>
+      <description>Format: "!&lt;comm&gt;@&lt;instance&gt;"</description>
+    </key>
 
     <key name="paned1-pos" type="i">
       <default>200</default>
