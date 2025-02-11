@@ -22,6 +22,7 @@
           <attribute name="label">Log _out</attribute>
         </item>
         <item>
+          <attribute name="action">win.login</attribute>
           <attribute name="label">_Add account</attribute>
         </item>
       </section>

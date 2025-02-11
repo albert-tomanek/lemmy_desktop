@@ -1,5 +1,7 @@
-namespace LemmyDesktop
+namespace Lemmy.Desktop
 {
+	using API;
+
 	public class App : Gtk.Application {
 		public App () {
 			Object(
@@ -34,12 +36,40 @@ namespace LemmyDesktop
 		[GtkChild] unowned Gtk.ColumnView posts_list;
 		//  [GtkChild] unowned GLib.MenuModel app_menu;
 
+		API.Session? sess { get; set; default = null; }
+
 		construct {
 			{
 				this.add_action_entries({
 					{"settings", () => {
 						var sett = new SettingsWindow() { modal = true, transient_for = this };
 						sett.show();
+					}, null, null, null},
+					{"login", () => {
+						var dlg = new LoginDialog() { modal = true, transient_for = this };
+						dlg.show();
+
+						dlg.response.connect(rc => {
+							if (rc == Gtk.ResponseType.OK)
+							{
+								API.Session.connect.begin(dlg.inst_entry.text, dlg.acc_entry.text, dlg.pass_entry.text, (_, ctx) => {
+									try {
+										this.sess = API.Session.connect.end(ctx);
+										dlg.close();
+										stdout.printf("Connected\n");
+									}
+									catch (Error err)
+									{
+										var d2 = new Gtk.MessageDialog(dlg, Gtk.DialogFlags.MODAL, Gtk.MessageType.ERROR, Gtk.ButtonsType.OK, null) {
+											text = "Login failed",
+											secondary_text = err.message,
+										};
+										d2.response.connect(_ => d2.close());
+										d2.show();
+									}
+								});
+							}
+						});
 					}, null, null, null}
 				//  	{"open", () => {
 				//  		var d = new Gtk.FileChooserDialog("Open", this, Gtk.FileChooserAction.OPEN, "Cancel", Gtk.ResponseType.CANCEL, "_Open", Gtk.ResponseType.OK) {
@@ -122,6 +152,34 @@ namespace LemmyDesktop
 	[GtkTemplate (ui = "/com/github/albert-tomanek/lemmy-desktop/settings.ui")]
 	class SettingsWindow : Gtk.Window
 	{
+	}
+
+	[GtkTemplate (ui = "/com/github/albert-tomanek/lemmy-desktop/login_dialog.ui")]
+	class LoginDialog : Gtk.Dialog
+	{
+		[GtkChild] public unowned Gtk.Entry inst_entry;
+		[GtkChild] public unowned Gtk.Entry acc_entry;
+		[GtkChild] public unowned Gtk.PasswordEntry pass_entry;
+		[GtkChild] unowned Gtk.Button cancel_button;
+		[GtkChild] unowned Gtk.Button login_button;
+
+		construct {
+			//  add_button("_Cancel", Gtk.ResponseType.CANCEL);
+			//  login_button = add_button("_Login", Gtk.ResponseType.OK) as Gtk.Button;
+			//  login_button.add_css_class("suggested-action");
+
+			cancel_button.clicked.connect(() => this.close());
+			login_button.clicked.connect(() => this.response(Gtk.ResponseType.OK));
+
+			inst_entry.notify["text"].connect(update_sensitive);
+			acc_entry.notify["text"].connect(update_sensitive);
+			update_sensitive();
+		}
+
+		void update_sensitive()
+		{
+			login_button.sensitive = (inst_entry.text != "" && acc_entry.text != "");
+		}
 	}
 }
 

@@ -1,0 +1,62 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<!DOCTYPE cambalache-project SYSTEM "cambalache-project.dtd">
+<cambalache-project version="0.17.3" target_tk="gtk-4.0">
+  <ui>
+	(1,11,"login_dialog.ui","login_dialog.ui",None,None,None,None,None,None,None)
+  </ui>
+  <ui_library>
+	(1,"gtk","4.6",None)
+  </ui_library>
+  <object>
+	(1,11,"GtkDialog","LemmyDesktopLoginDialog",None,None,None,None,-1,None,None),
+	(1,12,"GtkBox",None,11,None,None,None,None,None,None),
+	(1,21,"GtkGrid",None,12,None,None,None,1,None,None),
+	(1,22,"GtkLabel",None,21,None,None,None,None,None,None),
+	(1,23,"GtkEntry","inst_entry",21,None,None,None,1,None,None),
+	(1,24,"GtkLabel",None,21,None,None,None,2,None,None),
+	(1,25,"GtkEntry","acc_entry",21,None,None,None,3,None,None),
+	(1,26,"GtkBox",None,12,None,None,None,1,None,None),
+	(1,27,"GtkButton","cancel_button",26,None,None,None,None,None,None),
+	(1,28,"GtkButton","login_button",26,None,None,None,1,None,None),
+	(1,29,"GtkLabel",None,21,None,None,None,4,None,None),
+	(1,30,"GtkPasswordEntry","pass_entry",21,None,None,None,-1,None,None)
+  </object>
+  <object_property>
+	(1,11,"GtkWindow","title","Log in",None,None,None,None,None,None,None,None,None),
+	(1,12,"GtkBox","spacing","12",None,None,None,None,None,None,None,None,None),
+	(1,12,"GtkOrientable","orientation","vertical",None,None,None,None,None,None,None,None,None),
+	(1,12,"GtkWidget","margin-bottom","12",None,None,None,None,None,None,None,None,None),
+	(1,12,"GtkWidget","margin-end","12",None,None,None,None,None,None,None,None,None),
+	(1,12,"GtkWidget","margin-start","12",None,None,None,None,None,None,None,None,None),
+	(1,12,"GtkWidget","margin-top","12",None,None,None,None,None,None,None,None,None),
+	(1,21,"GtkGrid","column-spacing","12",None,None,None,None,None,None,None,None,None),
+	(1,21,"GtkGrid","row-spacing","12",None,None,None,None,None,None,None,None,None),
+	(1,22,"GtkLabel","label","Instance:",None,None,None,None,None,None,None,None,None),
+	(1,22,"GtkWidget","halign","end",None,None,None,None,None,None,None,None,None),
+	(1,24,"GtkLabel","label","Username:",None,None,None,None,None,None,None,None,None),
+	(1,24,"GtkWidget","halign","end",None,None,None,None,None,None,None,None,None),
+	(1,26,"GtkBox","spacing","12",None,None,None,None,None,None,None,None,None),
+	(1,26,"GtkWidget","halign","end",None,None,None,None,None,None,None,None,None),
+	(1,27,"GtkButton","label","_Cancel",None,None,None,None,None,None,None,None,None),
+	(1,27,"GtkButton","use-underline","True",None,None,None,None,None,None,None,None,None),
+	(1,28,"GtkButton","label","_Log in",None,None,None,None,None,None,None,None,None),
+	(1,28,"GtkButton","use-underline","True",None,None,None,None,None,None,None,None,None),
+	(1,28,"GtkWidget","css-classes","suggested-aciton",None,None,None,None,None,None,None,None,None),
+	(1,29,"GtkLabel","label","Password:",None,None,None,None,None,None,None,None,None),
+	(1,29,"GtkWidget","halign","end",None,None,None,None,None,None,None,None,None),
+	(1,30,"GtkPasswordEntry","show-peek-icon","True",None,None,None,None,None,None,None,None,None)
+  </object_property>
+  <object_layout_property>
+	(1,21,22,"GtkGridLayoutChild","column","0",None,None,None,None),
+	(1,21,22,"GtkGridLayoutChild","row","0",None,None,None,None),
+	(1,21,23,"GtkGridLayoutChild","column","1",None,None,None,None),
+	(1,21,23,"GtkGridLayoutChild","row","0",None,None,None,None),
+	(1,21,24,"GtkGridLayoutChild","column","0",None,None,None,None),
+	(1,21,24,"GtkGridLayoutChild","row","1",None,None,None,None),
+	(1,21,25,"GtkGridLayoutChild","column","1",None,None,None,None),
+	(1,21,25,"GtkGridLayoutChild","row","1",None,None,None,None),
+	(1,21,29,"GtkGridLayoutChild","row","2",None,None,None,None),
+	(1,21,30,"GtkGridLayoutChild","column","1",None,None,None,None),
+	(1,21,30,"GtkGridLayoutChild","row","2",None,None,None,None)
+  </object_layout_property>
+</cambalache-project>

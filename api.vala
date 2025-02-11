@@ -1,5 +1,44 @@
-namespace LemmyDesktop
+Json.Node? json_get(string path, string data) throws Error
 {
+    Json.Array res = Json.Path.query(path, Json.from_string(data)).get_array();
+
+    return res.get_length() > 0 ? res.get_element(0) : null;
+}
+
+errordomain Lemmy.APIError {
+    LOGIN
+}
+
+namespace Lemmy.API
+{
+    class Session
+    {
+        Soup.Session soup;
+
+        public string inst { get; private set; }
+        public string uname { get; private set; }
+
+        string token;
+
+        public static async Session connect(string inst, string uname, string passwd) throws Error
+        {
+            var sess = new Session() { inst = inst, uname = uname };
+            sess.soup = new Soup.Session();
+            
+            var msg = new Soup.Message ("POST", @"https://$(inst)/api/v3/user/login");
+            var body = @"{\"username_or_email\": \"$uname\", \"password\": \"$passwd\"}";
+            msg.set_request_body_from_bytes("application/json", new Bytes (body.data));
+            
+            var response = yield sess.soup.send_and_read_async(msg, 0, null);
+            
+            sess.token = json_get("$.jwt", (string) response.get_data()).get_string();
+            if (sess.token == null)
+                throw new APIError.LOGIN(json_get("$.error", (string) response.get_data()).get_string());
+
+            return sess;
+        }
+    }
+
     class GroupIter: GLib.ListModel, Object
     {
         public string instance { get; construct; }

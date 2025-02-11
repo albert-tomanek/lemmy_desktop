@@ -22,6 +22,7 @@
 	(1,4,"(item)","label","_Quit",None,None,None,None,None,None,None,None,None),
 	(1,5,"(submenu)","label","_Account",None,None,None,None,None,None,None,None,None),
 	(1,8,"(item)","label","Log _out",None,None,None,None,None,None,None,None,None),
+	(1,9,"(item)","action","win.login",None,None,None,None,None,None,None,None,None),
 	(1,9,"(item)","label","_Add account",None,None,None,None,None,None,None,None,None)
   </object_property>
 </cambalache-project>
