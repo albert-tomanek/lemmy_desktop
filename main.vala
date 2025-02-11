@@ -23,7 +23,6 @@ namespace Lemmy.Desktop
 			var app = new App();
 			return app.run(args);
 		}
-
 	}
 
 	[GtkTemplate (ui = "/com/github/albert-tomanek/lemmy-desktop/main.ui")]
@@ -35,62 +34,49 @@ namespace Lemmy.Desktop
 
 		[GtkChild] unowned Gtk.ColumnView posts_list;
 		//  [GtkChild] unowned GLib.MenuModel app_menu;
+		[GtkChild] unowned Gtk.ListView comms_list;
+		[GtkChild] unowned Gtk.SingleSelection comm_selection;
 
-		API.Session? sess { get; set; default = null; }
+		public API.Session? sess { get; set; default = null; }
+
+		// Stuff obtained from the current account through the API
+		ListStore u_subscribed = new ListStore(typeof(Handles.Community));
 
 		construct {
-			{
-				this.add_action_entries({
-					{"settings", () => {
-						var sett = new SettingsWindow() { modal = true, transient_for = this };
-						sett.show();
-					}, null, null, null},
-					{"login", () => {
-						var dlg = new LoginDialog() { modal = true, transient_for = this };
-						dlg.show();
+			this.add_action_entries({
+				{"settings", () => {
+					var sett = new SettingsWindow() { modal = true, transient_for = this };
+					sett.show();
+				}, null, null, null},
+				{"login", () => {
+					var dlg = new LoginDialog() { modal = true, transient_for = this };
+					dlg.show();
 
-						dlg.response.connect(rc => {
-							if (rc == Gtk.ResponseType.OK)
-							{
-								API.Session.connect.begin(dlg.inst_entry.text, dlg.acc_entry.text, dlg.pass_entry.text, (_, ctx) => {
-									try {
-										this.sess = API.Session.connect.end(ctx);
-										dlg.close();
-										stdout.printf("Connected\n");
-									}
-									catch (Error err)
-									{
-										var d2 = new Gtk.MessageDialog(dlg, Gtk.DialogFlags.MODAL, Gtk.MessageType.ERROR, Gtk.ButtonsType.OK, null) {
-											text = "Login failed",
-											secondary_text = err.message,
-										};
-										d2.response.connect(_ => d2.close());
-										d2.show();
-									}
-								});
-							}
-						});
-					}, null, null, null}
-				//  	{"open", () => {
-				//  		var d = new Gtk.FileChooserDialog("Open", this, Gtk.FileChooserAction.OPEN, "Cancel", Gtk.ResponseType.CANCEL, "_Open", Gtk.ResponseType.OK) {
-				//  			select_multiple = false,
-				//  			filter = App.ff_flyby,
-				//  		};
-				//  		d.show();
-			
-				//  		d.response.connect((r) => {
-				//  			if (r == Gtk.ResponseType.OK)
-				//  				this.open.begin(d.get_file(), (_, ctx) => {
-				//  					this.open.end(ctx);
-				//  				});
-			
-				//  			d.close();
-				//  		});
-				//  	}, null, null, null}
-				}, this);
-			}
+					dlg.response.connect(rc => {
+						if (rc == Gtk.ResponseType.OK)
+						{
+							API.Session.login.begin(dlg.inst_entry.text, dlg.acc_entry.text, dlg.pass_entry.text, (_, ctx) => {
+								try {
+									this.sess = API.Session.login.end(ctx);
+									dlg.close();
+								}
+								catch (Error err)
+								{
+									var d2 = new Gtk.MessageDialog(dlg, Gtk.DialogFlags.MODAL, Gtk.MessageType.ERROR, Gtk.ButtonsType.OK, null) {
+										text = "Login failed",
+										secondary_text = err.message,
+									};
+									d2.response.connect(_ => d2.close());
+									d2.show();
+								}
+							});
+						}
+					});
+				}, null, null, null}
+			}, this);
 
 			this.init_ui();
+			notify["sess"].connect(on_account_changed);
 
 			var settings = new Settings ("com.github.albert-tomanek.lemmy-desktop");
 			settings.bind("paned1-pos", this.paned1, "position", SettingsBindFlags.DEFAULT);
@@ -101,10 +87,9 @@ namespace Lemmy.Desktop
 		{
 			this.show_menubar = true;
 
-			var gi = new GroupIter("lemmy.world", "asklemmy");
-			gi.get_more_posts.begin();
+			// posts_list
 
-			this.posts_list.model = new Gtk.SingleSelection(gi);
+			this.posts_list.model = new Gtk.SingleSelection(null);
 			this.posts_list.append_column(new Gtk.ColumnViewColumn(null, null) {
 				title = "Title",
 				expand = true,
@@ -120,7 +105,7 @@ namespace Lemmy.Desktop
 					},
 					null,
 					(@this, li) => {
-						((Gtk.Label) li.child).label = ((PostHandle) li.item).name;
+						((Gtk.Label) li.child).label = ((Handles.Post) li.item).name;
 					},
 					null
 				)
@@ -141,11 +126,80 @@ namespace Lemmy.Desktop
 					},
 					null,
 					(@this, li) => {
-						((Gtk.Label) li.child).label = ((PostHandle) li.item).creator.name;
+						((Gtk.Label) li.child).label = ((Handles.Post) li.item).creator.name;
 					},
 					null
 				)
 			});
+
+			// comms_list
+
+			this.comm_selection.model = this.u_subscribed;
+			this.comm_selection.notify["selected-item"].connect(() => {
+				var grp = this.comm_selection.selected_item as Handles.Community;
+
+				var gi = new GroupIter(sess, grp.instance, grp.name);
+				gi.get_more_posts.begin();
+	
+				(this.posts_list.model as Gtk.SingleSelection).model = gi;
+			});
+
+			this.comms_list.factory = new_signal_list_item_factory(
+				(@this, li) => {
+					li.child = new CommunityListRow();
+				},
+				null,
+				(@this, li) => {
+					var comm = ((Handles.Community) li.item);
+					var row  = ((CommunityListRow) li.child);
+
+					row.name.label = comm.title;
+					row.tooltip_text = (comm.description != null) ? (comm.description.length <= 300) ? comm.description : null : null;
+					row.set_icon.begin(comm.icon);
+				},
+				null
+			);
+		}
+
+		class CommunityListRow : Gtk.Box
+		{
+			public Gtk.Label name = new Gtk.Label(null) {
+				halign = Gtk.Align.START,
+				hexpand = true,
+				ellipsize = Pango.EllipsizeMode.END
+			};
+			public Gtk.Image icon = new Gtk.Image() {
+				width_request = 16,
+				height_request = 16
+			};
+
+			construct {
+				orientation = Gtk.Orientation.HORIZONTAL;
+				spacing = 4;
+
+				this.append(icon);
+				this.append(name);
+			}
+
+			public async void set_icon(string? url)
+			{
+				if (url != null)
+				{
+					this.icon.opacity = 1.0;
+
+					var bytes = yield (new Soup.Session()).send_and_read_async(new Soup.Message ("GET", url), 0, null);	
+					this.icon.gicon = new GLib.BytesIcon(bytes);
+				}
+				else
+					this.icon.opacity = 0.0;
+			}
+		}
+
+		void on_account_changed()
+		{
+			stdout.printf("on_account_changed\n");
+			this.u_subscribed.remove_all();
+			sess.get_subscribed.begin(this.u_subscribed);
 		}
 	}
 

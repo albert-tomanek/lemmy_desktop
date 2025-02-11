@@ -87,7 +87,11 @@
               <object class="GtkScrolledWindow">
                 <property name="vexpand">True</property>
                 <child>
-                  <object class="GtkColumnView"/>
+                  <object class="GtkListView" id="comms_list">
+                    <property name="model">
+                      <object class="GtkSingleSelection" id="comm_selection"/>
+                    </property>
+                  </object>
                 </child>
               </object>
             </child>

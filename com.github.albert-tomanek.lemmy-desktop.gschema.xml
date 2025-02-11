@@ -11,6 +11,11 @@
       <description>Format: "!&lt;comm&gt;@&lt;instance&gt;"</description>
     </key>
 
+    <key name="jwt" type="s">
+      <default>""</default>
+      <description>Token to use with API.</description>
+    </key>
+
     <key name="paned1-pos" type="i">
       <default>200</default>
       <!-- <summary>How much the red channel should be boosted by in anaglyphs.</summary>

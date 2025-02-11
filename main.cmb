@@ -16,7 +16,6 @@
 	(2,8,"GtkScrolledWindow",None,7,None,None,None,1,None,None),
 	(2,9,"GtkColumnView","posts_list",8,None,None,None,-1,None,None),
 	(2,13,"GtkScrolledWindow",None,3,None,None,None,1,None,None),
-	(2,14,"GtkColumnView",None,13,None,None,None,-1,None,None),
 	(2,19,"GtkBox",None,3,None,None,None,None,None,None),
 	(2,20,"GtkSearchEntry",None,19,None,None,None,None,None,None),
 	(2,21,"GtkButton",None,19,None,None,None,1,None,None),
@@ -24,7 +23,9 @@
 	(2,23,"GtkBox",None,22,None,None,None,-1,None,None),
 	(2,24,"GtkComboBoxText",None,23,None,None,None,1,None,None),
 	(2,25,"GtkLabel",None,23,None,None,None,None,None,None),
-	(2,26,"GtkLabel",None,5,None,None,None,-1,None,None)
+	(2,26,"GtkLabel",None,5,None,None,None,-1,None,None),
+	(2,27,"GtkListView","comms_list",13,None,None,None,-1,None,None),
+	(2,28,"GtkSingleSelection","comm_selection",27,None,None,None,-1,None,None)
   </object>
   <object_property>
 	(2,1,"GtkApplicationWindow","show-menubar","True",None,None,None,None,None,None,None,None,None),
@@ -55,7 +56,8 @@
 	(2,24,"GtkWidget","css-classes","toolbar",None,None,None,None,None,None,None,None,None),
 	(2,25,"GtkLabel","label","Sort by:",None,None,None,None,None,None,None,None,None),
 	(2,26,"GtkLabel","label","comms",None,None,None,None,None,None,None,None,None),
-	(2,26,"GtkWidget","hexpand","True",None,None,None,None,None,None,None,None,None)
+	(2,26,"GtkWidget","hexpand","True",None,None,None,None,None,None,None,None,None),
+	(2,27,"GtkListView","model",None,None,None,None,None,28,None,None,None,None)
   </object_property>
   <object_data>
 	(2,24,"GtkComboBoxText",1,1,None,None,None,None,None,None),
