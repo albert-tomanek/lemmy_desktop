@@ -3,7 +3,6 @@
 <interface>
   <!-- interface-name example -->
   <requires lib="gtk" version="4.6"/>
-  <requires lib="gio" version="2.0"/>
   <template class="LemmyDesktopMainWindow" parent="GtkApplicationWindow">
     <property name="default-height">500</property>
     <property name="default-width">700</property>
@@ -16,7 +15,8 @@
           <object class="GtkPaned" id="paned2">
             <property name="end-child">
               <object class="GtkLabel">
-                <property name="label">post</property>
+                <property name="hexpand">True</property>
+                <property name="label">comms</property>
               </object>
             </property>
             <property name="start-child">
@@ -24,6 +24,31 @@
                 <property name="hexpand">True</property>
                 <property name="orientation">vertical</property>
                 <property name="vexpand">True</property>
+                <child>
+                  <object class="GtkBox">
+                    <property name="css-classes">toolbar</property>
+                    <child>
+                      <object class="GtkBox">
+                        <child>
+                          <object class="GtkLabel">
+                            <property name="label">Sort by:</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkComboBoxText">
+                            <property name="active-id">hot</property>
+                            <property name="css-classes">toolbar</property>
+                            <items>
+                              <item id="top">Top</item>
+                              <item id="hot">Hot</item>
+                              <item id="new">New</item>
+                            </items>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                  </object>
+                </child>
                 <child>
                   <object class="GtkScrolledWindow">
                     <property name="hexpand">True</property>
@@ -44,10 +69,26 @@
             <property name="orientation">vertical</property>
             <property name="width-request">200</property>
             <child>
-              <object class="GtkLabel">
-                <property name="hexpand">True</property>
-                <property name="label">comms</property>
+              <object class="GtkBox">
+                <property name="css-classes">toolbar</property>
+                <child>
+                  <object class="GtkSearchEntry">
+                    <property name="hexpand">True</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkButton">
+                    <property name="icon-name">list-add-symbolic</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkScrolledWindow">
                 <property name="vexpand">True</property>
+                <child>
+                  <object class="GtkColumnView"/>
+                </child>
               </object>
             </child>
           </object>
@@ -55,12 +96,4 @@
       </object>
     </child>
   </template>
-  <menu id="app_menu">
-    <item>
-      <attribute name="label">&amp;Settings</attribute>
-    </item>
-    <item>
-      <attribute name="label">&amp;Quit</attribute>
-    </item>
-  </menu>
 </interface>

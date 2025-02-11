@@ -1,0 +1,49 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Created with Cambalache 0.90.4 -->
+<interface>
+  <!-- interface-name settings.ui -->
+  <requires lib="gtk" version="4.6"/>
+  <template class="LemmyDesktopSettingsWindow" parent="GtkWindow">
+    <property name="height-request">300</property>
+    <property name="title">Lemmy Settings</property>
+    <property name="width-request">500</property>
+    <child>
+      <object class="GtkBox">
+        <property name="margin-bottom">12</property>
+        <property name="margin-end">12</property>
+        <property name="margin-start">12</property>
+        <property name="margin-top">12</property>
+        <property name="spacing">12</property>
+        <child>
+          <object class="GtkScrolledWindow">
+            <property name="has-frame">True</property>
+            <property name="width-request">150</property>
+            <child>
+              <object class="GtkListView">
+                <property name="factory">
+                  <object class="GtkBuilderListItemFactory">
+                    <property name="bytes">&lt;interface&gt; &lt;template class="GtkListItem"&gt; &lt;property name="child"&gt; &lt;object class="GtkLabel"&gt; &lt;property name="halign"&gt;GTK_ALIGN_START&lt;/property&gt; &lt;binding name="label"&gt; &lt;lookup name="string" type="GtkStringObject"&gt; &lt;lookup name="item"&gt;GtkListItem&lt;/lookup&gt; &lt;/lookup&gt; &lt;/binding&gt; &lt;/object&gt; &lt;/property&gt; &lt;/template&gt; &lt;/interface&gt;</property>
+                  </object>
+                </property>
+                <property name="model">
+                  <object class="GtkSingleSelection">
+                    <property name="model">
+                      <object class="GtkStringList">
+                        <items>
+                          <item>Blocklists</item>
+                        </items>
+                      </object>
+                    </property>
+                  </object>
+                </property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkStack"/>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

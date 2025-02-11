@@ -11,15 +11,20 @@
 	(2,1,"GtkApplicationWindow","LemmyDesktopMainWindow",None,None,None,None,None,None,None),
 	(2,2,"GtkPaned","paned1",1,None,None,None,-1,None,None),
 	(2,3,"GtkBox",None,2,None,None,None,-1,None,None),
-	(2,4,"GtkLabel",None,3,None,None,None,-1,None,None),
 	(2,5,"GtkPaned","paned2",2,None,None,None,-1,None,None),
-	(2,6,"GtkLabel",None,5,None,None,None,-1,None,None),
 	(2,7,"GtkBox",None,5,None,None,None,-1,None,None),
-	(2,8,"GtkScrolledWindow",None,7,None,None,None,-1,None,None),
+	(2,8,"GtkScrolledWindow",None,7,None,None,None,1,None,None),
 	(2,9,"GtkColumnView","posts_list",8,None,None,None,-1,None,None),
-	(2,10,"(menu)","app_menu",None,None,None,None,-1,None,None),
-	(2,11,"(item)",None,10,None,None,None,-1,None,None),
-	(2,12,"(item)",None,10,None,None,None,-1,None,None)
+	(2,13,"GtkScrolledWindow",None,3,None,None,None,1,None,None),
+	(2,14,"GtkColumnView",None,13,None,None,None,-1,None,None),
+	(2,19,"GtkBox",None,3,None,None,None,None,None,None),
+	(2,20,"GtkSearchEntry",None,19,None,None,None,None,None,None),
+	(2,21,"GtkButton",None,19,None,None,None,1,None,None),
+	(2,22,"GtkBox",None,7,None,None,None,None,None,None),
+	(2,23,"GtkBox",None,22,None,None,None,-1,None,None),
+	(2,24,"GtkComboBoxText",None,23,None,None,None,1,None,None),
+	(2,25,"GtkLabel",None,23,None,None,None,None,None,None),
+	(2,26,"GtkLabel",None,5,None,None,None,-1,None,None)
   </object>
   <object_property>
 	(2,1,"GtkApplicationWindow","show-menubar","True",None,None,None,None,None,None,None,None,None),
@@ -34,18 +39,33 @@
 	(2,2,"GtkPaned","start-child",None,None,None,None,None,3,None,None,None,None),
 	(2,3,"GtkOrientable","orientation","vertical",None,None,None,None,None,None,None,None,None),
 	(2,3,"GtkWidget","width-request","200",None,None,None,None,None,None,None,None,None),
-	(2,4,"GtkLabel","label","comms",None,None,None,None,None,None,None,None,None),
-	(2,4,"GtkWidget","hexpand","True",None,None,None,None,None,None,None,None,None),
-	(2,4,"GtkWidget","vexpand","True",None,None,None,None,None,None,None,None,None),
-	(2,5,"GtkPaned","end-child",None,None,None,None,None,6,None,None,None,None),
+	(2,5,"GtkPaned","end-child",None,None,None,None,None,26,None,None,None,None),
 	(2,5,"GtkPaned","start-child",None,None,None,None,None,7,None,None,None,None),
-	(2,6,"GtkLabel","label","post",None,None,None,None,None,None,None,None,None),
 	(2,7,"GtkOrientable","orientation","vertical",None,None,None,None,None,None,None,None,None),
 	(2,7,"GtkWidget","hexpand","True",None,None,None,None,None,None,None,None,None),
 	(2,7,"GtkWidget","vexpand","True",None,None,None,None,None,None,None,None,None),
 	(2,8,"GtkWidget","hexpand","True",None,None,None,None,None,None,None,None,None),
 	(2,8,"GtkWidget","vexpand","True",None,None,None,None,None,None,None,None,None),
-	(2,11,"(item)","label","&amp;Settings",None,None,None,None,None,None,None,None,None),
-	(2,12,"(item)","label","&amp;Quit",None,None,None,None,None,None,None,None,None)
+	(2,13,"GtkWidget","vexpand","True",None,None,None,None,None,None,None,None,None),
+	(2,19,"GtkWidget","css-classes","toolbar",None,None,None,None,None,None,None,None,None),
+	(2,20,"GtkWidget","hexpand","True",None,None,None,None,None,None,None,None,None),
+	(2,21,"GtkButton","icon-name","list-add-symbolic",None,None,None,None,None,None,None,None,None),
+	(2,22,"GtkWidget","css-classes","toolbar",None,None,None,None,None,None,None,None,None),
+	(2,24,"GtkComboBox","active-id","hot",None,None,None,None,None,None,None,None,None),
+	(2,24,"GtkWidget","css-classes","toolbar",None,None,None,None,None,None,None,None,None),
+	(2,25,"GtkLabel","label","Sort by:",None,None,None,None,None,None,None,None,None),
+	(2,26,"GtkLabel","label","comms",None,None,None,None,None,None,None,None,None),
+	(2,26,"GtkWidget","hexpand","True",None,None,None,None,None,None,None,None,None)
   </object_property>
+  <object_data>
+	(2,24,"GtkComboBoxText",1,1,None,None,None,None,None,None),
+	(2,24,"GtkComboBoxText",2,2,"Top",1,None,None,None,None),
+	(2,24,"GtkComboBoxText",2,3,"Hot",1,None,None,None,None),
+	(2,24,"GtkComboBoxText",2,4,"New",1,None,None,None,None)
+  </object_data>
+  <object_data_arg>
+	(2,24,"GtkComboBoxText",2,2,"id","top"),
+	(2,24,"GtkComboBoxText",2,3,"id","hot"),
+	(2,24,"GtkComboBoxText",2,4,"id","new")
+  </object_data_arg>
 </cambalache-project>

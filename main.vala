@@ -9,6 +9,8 @@ namespace LemmyDesktop
 		}
 
 		protected override void activate () {
+			this.set_menubar((new Gtk.Builder.from_resource("/com/github/albert-tomanek/lemmy-desktop/appmenu.ui")).get_object("app_menu") as GLib.MenuModel);
+
 			var win = new MainWindow();
 			this.add_window(win);
 			win.show();
@@ -34,25 +36,11 @@ namespace LemmyDesktop
 
 		construct {
 			{
-				//  this.add_action_entries({
-				//  	{"save-as", () => {
-				//  		var d = new Gtk.FileChooserDialog("Save As", this, Gtk.FileChooserAction.SAVE, "Cancel", Gtk.ResponseType.CANCEL, "Save As", Gtk.ResponseType.OK) {
-				//  			select_multiple = false,
-				//  			filter = App.ff_flyby
-				//  		};
-				//  		d.set_current_name(".flyby");
-				//  		d.show();
-			
-				//  		d.response.connect((r) => {
-				//  			if (r == Gtk.ResponseType.OK)
-				//  				this.save.begin(d.get_file(), (_, ctx) => {
-				//  					this.save.end(ctx);
-				//  					message("Finished saving");
-				//  				});
-			
-				//  			d.close();
-				//  		});		
-				//  	}, null, null, null},
+				this.add_action_entries({
+					{"settings", () => {
+						var sett = new SettingsWindow() { modal = true, transient_for = this };
+						sett.show();
+					}, null, null, null}
 				//  	{"open", () => {
 				//  		var d = new Gtk.FileChooserDialog("Open", this, Gtk.FileChooserAction.OPEN, "Cancel", Gtk.ResponseType.CANCEL, "_Open", Gtk.ResponseType.OK) {
 				//  			select_multiple = false,
@@ -69,12 +57,10 @@ namespace LemmyDesktop
 				//  			d.close();
 				//  		});
 				//  	}, null, null, null}
-				//  }, this);
+				}, this);
 			}
 
 			this.init_ui();
-
-			//  this.application.set_menubar((new Gtk.Builder.from_resource("/com/github/albert-tomanek/lemmy-desktop/main.ui")).get_object("app_menu") as GLib.MenuModel);
 
 			var settings = new Settings ("com.github.albert-tomanek.lemmy-desktop");
 			settings.bind("paned1-pos", this.paned1, "position", SettingsBindFlags.DEFAULT);
@@ -83,6 +69,8 @@ namespace LemmyDesktop
 
 		void init_ui()
 		{
+			this.show_menubar = true;
+
 			var gi = new GroupIter("lemmy.world", "asklemmy");
 			gi.get_more_posts.begin();
 
@@ -107,7 +95,33 @@ namespace LemmyDesktop
 					null
 				)
 			});
+
+			this.posts_list.append_column(new Gtk.ColumnViewColumn(null, null) {
+				title = "User",
+				expand = false,
+				resizable = true,
+				
+				factory = new_signal_list_item_factory(
+					(@this, li) => {
+						li.child = new Gtk.Label(null) {
+							halign = Gtk.Align.START,
+							hexpand = true,
+							ellipsize = Pango.EllipsizeMode.END
+						};
+					},
+					null,
+					(@this, li) => {
+						((Gtk.Label) li.child).label = ((PostHandle) li.item).creator.name;
+					},
+					null
+				)
+			});
 		}
+	}
+
+	[GtkTemplate (ui = "/com/github/albert-tomanek/lemmy-desktop/settings.ui")]
+	class SettingsWindow : Gtk.Window
+	{
 	}
 }
 

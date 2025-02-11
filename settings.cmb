@@ -1,0 +1,40 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<!DOCTYPE cambalache-project SYSTEM "cambalache-project.dtd">
+<cambalache-project version="0.17.3" target_tk="gtk-4.0">
+  <ui>
+	(1,1,"settings.ui","settings.ui",None,None,None,None,None,None,None)
+  </ui>
+  <ui_library>
+	(1,"gtk","4.6",None)
+  </ui_library>
+  <object>
+	(1,1,"GtkWindow","LemmyDesktopSettingsWindow",None,None,None,None,-1,None,None),
+	(1,2,"GtkBox",None,1,None,None,None,-1,None,None),
+	(1,3,"GtkScrolledWindow",None,2,None,None,None,-1,None,None),
+	(1,4,"GtkListView",None,3,None,None,None,-1,None,None),
+	(1,5,"GtkSingleSelection",None,4,None,None,None,-1,None,None),
+	(1,6,"GtkStringList",None,5,None,None,None,-1,None,None),
+	(1,8,"GtkStack",None,2,None,None,None,-1,None,None),
+	(1,9,"GtkBuilderListItemFactory",None,4,None,None,None,-1,None,"")
+  </object>
+  <object_property>
+	(1,1,"GtkWidget","height-request","300",None,None,None,None,None,None,None,None,None),
+	(1,1,"GtkWidget","width-request","500",None,None,None,None,None,None,None,None,None),
+	(1,1,"GtkWindow","title","Lemmy Settings",None,None,None,None,None,None,None,None,None),
+	(1,2,"GtkBox","spacing","12",None,None,None,None,None,None,None,None,None),
+	(1,2,"GtkWidget","margin-bottom","12",None,None,None,None,None,None,None,None,None),
+	(1,2,"GtkWidget","margin-end","12",None,None,None,None,None,None,None,None,None),
+	(1,2,"GtkWidget","margin-start","12",None,None,None,None,None,None,None,None,None),
+	(1,2,"GtkWidget","margin-top","12",None,None,None,None,None,None,None,None,None),
+	(1,3,"GtkScrolledWindow","has-frame","True",None,None,None,None,None,None,None,None,None),
+	(1,3,"GtkWidget","width-request","150",None,None,None,None,None,None,None,None,None),
+	(1,4,"GtkListView","factory",None,None,None,None,None,9,None,None,None,None),
+	(1,4,"GtkListView","model",None,None,None,None,None,5,None,None,None,None),
+	(1,5,"GtkSingleSelection","model",None,None,None,None,None,6,None,None,None,None),
+	(1,9,"GtkBuilderListItemFactory","bytes","&lt;interface&gt; &lt;template class=\"GtkListItem\"&gt; &lt;property name=\"child\"&gt; &lt;object class=\"GtkLabel\"&gt; &lt;property name=\"halign\"&gt;GTK_ALIGN_START&lt;/property&gt; &lt;binding name=\"label\"&gt; &lt;lookup name=\"string\" type=\"GtkStringObject\"&gt; &lt;lookup name=\"item\"&gt;GtkListItem&lt;/lookup&gt; &lt;/lookup&gt; &lt;/binding&gt; &lt;/object&gt; &lt;/property&gt; &lt;/template&gt; &lt;/interface&gt;",None,None,None,None,None,None,None,None,None)
+  </object_property>
+  <object_data>
+	(1,6,"GtkStringList",1,1,None,None,None,None,None,None),
+	(1,6,"GtkStringList",2,2,"Blocklists",1,None,None,None,None)
+  </object_data>
+</cambalache-project>

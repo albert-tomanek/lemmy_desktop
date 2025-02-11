@@ -2,5 +2,7 @@
 <gresources>
   <gresource prefix="/com/github/albert-tomanek/lemmy-desktop">
     <file compressed="true" preprocess="xml-stripblanks">main.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">settings.ui</file>
+    <file compressed="true" preprocess="xml-stripblanks">appmenu.ui</file>
   </gresource>
 </gresources>

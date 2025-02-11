@@ -43,13 +43,19 @@ namespace LemmyDesktop
             var n_items = r.count_elements();
             for (int i = 0; i < n_items; i++)
             {
-                posts.add(
-                    Json.gobject_deserialize(
-                        typeof(PostHandle),
-                        Json.Path.query("$.posts[%d].post".printf(i), pa.get_root())
-                            .get_array().get_element(0)
-                    ) as PostHandle
-                );
+                PostHandle post = Json.gobject_deserialize(
+                    typeof(PostHandle),
+                    Json.Path.query("$.posts[%d].post".printf(i), pa.get_root())
+                        .get_array().get_element(0)
+                ) as PostHandle;
+
+                post.creator = Json.gobject_deserialize(
+                    typeof(UserHandle),
+                    Json.Path.query("$.posts[%d].creator".printf(i), pa.get_root())
+                        .get_array().get_element(0)
+                ) as UserHandle;
+
+                posts.add(post);
             }
             r.end_member();
             
@@ -79,9 +85,16 @@ namespace LemmyDesktop
         public string name { get; set; }
         public bool locked { get; set; }
 
+        public UserHandle creator;
+
         // Need parsing
         public string published { get; set; }
 
         //  public Post get_post()
+    }
+
+    public class UserHandle : Object, Json.Serializable
+    {
+        public string name { get; set; }
     }
 }

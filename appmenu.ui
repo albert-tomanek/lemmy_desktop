@@ -1,0 +1,30 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Created with Cambalache 0.90.4 -->
+<interface>
+  <!-- interface-name appmenu.ui -->
+  <requires lib="gio" version="2.0"/>
+  <menu id="app_menu">
+    <submenu>
+      <attribute name="label">_File</attribute>
+      <item>
+        <attribute name="action">win.settings</attribute>
+        <attribute name="label">_Settings</attribute>
+      </item>
+      <item>
+        <attribute name="label">_Quit</attribute>
+      </item>
+    </submenu>
+    <submenu>
+      <attribute name="label">_Account</attribute>
+      <section id="accounts"/>
+      <section>
+        <item>
+          <attribute name="label">Log _out</attribute>
+        </item>
+        <item>
+          <attribute name="label">_Add account</attribute>
+        </item>
+      </section>
+    </submenu>
+  </menu>
+</interface>
