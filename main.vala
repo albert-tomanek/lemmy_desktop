@@ -11,8 +11,6 @@ namespace Lemmy.Desktop
 		}
 
 		protected override void activate () {
-			this.set_menubar((new Gtk.Builder.from_resource("/com/github/albert-tomanek/lemmy-desktop/appmenu.ui")).get_object("app_menu") as GLib.MenuModel);
-
 			var win = new MainWindow();
 			this.add_window(win);
 			win.show();
@@ -22,6 +20,39 @@ namespace Lemmy.Desktop
 		{
 			var app = new App();
 			return app.run(args);
+		}
+	}
+
+	private class AccountInfo : Object
+	{
+		/* Locally stored info related to desplaying/fetching data from the online account */
+
+		public string internal_id { get; private set; }
+
+		public string inst  { get; set; }
+		public string uname { get; set; }
+		public string? jwt  { get; set; }
+
+		public AccountInfo.load(string id)
+		{
+			Object();
+			this.internal_id = id;
+			bind_props();
+		}
+
+		public AccountInfo.create()
+		{
+			Object();
+			this.internal_id = GLib.Uuid.string_random();
+			bind_props();
+		}
+
+		private void bind_props()
+		{
+			var sett = new Settings.with_path("com.github.albert-tomanek.lemmy-desktop.account", @"/com/github/albert-tomanek/lemmy-desktop/accounts/$internal_id/");
+			sett.bind("instance", this, "inst", SettingsBindFlags.DEFAULT);
+			sett.bind("username", this, "uname", SettingsBindFlags.DEFAULT);
+			sett.bind("jwt", this, "jwt", SettingsBindFlags.DEFAULT);
 		}
 	}
 
@@ -40,55 +71,95 @@ namespace Lemmy.Desktop
 		[GtkChild] unowned Gtk.ListView comms_list;
 		[GtkChild] unowned Gtk.SingleSelection comm_selection;
 
-		public API.Session? sess { get; set; default = null; }
+		// Account state
+		internal string[] account_ids { get; set; }
+		internal AccountInfo? account { get; set; default = null; }		// This contains info needed to log in
+		internal API.Session? session { get; set; default = null; }		// This is obtained by logging in and used to communicate with the API
 
-		// Stuff obtained from the current account through the API
+		// View state
+		//  public Post current_post { get; set; }
+		//  public Community current_comm { get; set; }
+
 		ListStore u_subscribed = new ListStore(typeof(Handles.Community));
 
 		construct {
-			this.add_action_entries({
-				{"settings", () => {
-					var sett = new SettingsWindow() { modal = true, transient_for = this };
-					sett.show();
-				}, null, null, null},
-				{"login", () => {
-					var dlg = new LoginDialog() { modal = true, transient_for = this };
-					dlg.show();
-
-					dlg.response.connect(rc => {
-						if (rc == Gtk.ResponseType.OK)
-						{
-							API.Session.login.begin(dlg.inst_entry.text, dlg.acc_entry.text, dlg.pass_entry.text, (_, ctx) => {
-								try {
-									this.sess = API.Session.login.end(ctx);
-									dlg.close();
-								}
-								catch (Error err)
-								{
-									var d2 = new Gtk.MessageDialog(dlg, Gtk.DialogFlags.MODAL, Gtk.MessageType.ERROR, Gtk.ButtonsType.OK, null) {
-										text = "Login failed",
-										secondary_text = err.message,
-									};
-									d2.response.connect(_ => d2.close());
-									d2.show();
-								}
-							});
-						}
-					});
-				}, null, null, null}
-			}, this);
-
+			var sett = new Settings ("com.github.albert-tomanek.lemmy-desktop");
 			this.init_ui();
-			notify["sess"].connect(on_account_changed);
+			
+			sett.bind("paned1-pos", this.paned1, "position", SettingsBindFlags.DEFAULT);
+			sett.bind("paned2-pos", this.paned2, "position", SettingsBindFlags.DEFAULT);
+			sett.bind("account-ids", this, "account-ids", SettingsBindFlags.DEFAULT);
+			
+			this.init_actions();
 
-			var settings = new Settings ("com.github.albert-tomanek.lemmy-desktop");
-			settings.bind("paned1-pos", this.paned1, "position", SettingsBindFlags.DEFAULT);
-			settings.bind("paned2-pos", this.paned2, "position", SettingsBindFlags.DEFAULT);
+			this.notify["account"].connect(() => {
+				if (this.account == null)
+				{
+					this.session = null;
+					return;
+				}
+
+				API.check_token.begin(this.account.inst, this.account.jwt, (_, rc) => {
+					if (API.check_token.end(rc))
+					{
+						this.session = new API.Session(this.account.inst, this.account.uname, this.account.jwt);
+					}
+					else
+					{
+						// Ask them for their password again, just as if logging in
+						this.run_login_dialog(this.account, (new_jwt, inst, uname) => {
+							if (new_jwt != null)
+							{
+								this.session = new API.Session(this.account.inst, this.account.uname, new_jwt);
+								this.account.jwt = new_jwt;
+							}
+							else
+							{
+								this.account = null;
+							}
+						});
+					}
+				});
+			});
+			notify["session"].connect(on_new_login);
+
+			// Initial app state
+			var current_account = sett.get_string("current-account");
+			this.notify["account"].connect(() => {
+				sett.set_string("current-account", this.account.internal_id);
+			});
+
+			if (current_account != "")
+				this.account = new AccountInfo.load(current_account);
 		}
 
 		void init_ui()
 		{
+			// Menus
+
 			this.show_menubar = true;
+			var menus = new Gtk.Builder.from_resource("/com/github/albert-tomanek/lemmy-desktop/appmenu.ui");
+			this.notify["application"].connect(() => {
+				this.application.set_menubar(menus.get_object("app_menu") as GLib.MenuModel);
+			});
+
+			var accounts_menu = menus.get_object("account_subm") as GLib.Menu;
+			var acc_list = new GLib.Menu();
+			accounts_menu.prepend_section(null, acc_list);
+
+			this.notify["account"].connect(key => {	// There is no way to listen to changes in the contents of entries/. But we can listen to this.account, which changes whenever an account is added/removed from that dir.
+				acc_list.remove_all();
+
+				foreach (string internal_id in this.account_ids)
+				{
+					var acc = new AccountInfo.load(internal_id);
+
+					var item = new GLib.MenuItem(@"!$(acc.uname)@$(acc.inst)", null);
+					item.set_action_and_target("win.login", "s", internal_id);
+					acc_list.append_item(item);
+				}
+			});
+			this.notify_property("account");	// Just to initially populate the menu
 
 			// posts_list
 
@@ -117,6 +188,7 @@ namespace Lemmy.Desktop
 				title = "User",
 				expand = false,
 				resizable = true,
+				visible = false,
 				
 				factory = new_signal_list_item_factory(
 					(@this, li) => {
@@ -146,7 +218,7 @@ namespace Lemmy.Desktop
 			this.comm_selection.notify["selected-item"].connect(() => {
 				var grp = this.comm_selection.selected_item as Handles.Community;
 
-				var gi = new GroupIter(sess, grp.instance, grp.name);
+				var gi = new GroupIter(session, grp.instance, grp.name);
 				gi.get_more_posts.begin((a, b) => on_more_posts_gotten(a, b, gi));
 	
 				posts_selection.model = gi;
@@ -168,7 +240,7 @@ namespace Lemmy.Desktop
 				null
 			);
 		}
-
+		
 		void on_more_posts_gotten(Object? _, AsyncResult async_ctx, GroupIter gi)
 		{
 			// This is called at the end of the async function loading posts, and it keeps calling it again until the screen is full.
@@ -177,6 +249,94 @@ namespace Lemmy.Desktop
 			stdout.printf("======== %d %d %d\n", this.posts_list.get_height(), this.posts_scrolledwindow.get_height(), n_loaded);
 			if (this.posts_list.get_height() < this.posts_scrolledwindow.get_height() && n_loaded > 0)	// (The n_loaded check is to stop this loop in case the community has fewer posts than fit on the screen)
 				gi.get_more_posts.begin((a, b) => on_more_posts_gotten(a, b, gi));		
+		}
+
+		void init_actions()
+		{
+			var login_act = new SimpleAction.stateful("login", VariantType.STRING, new Variant.string(""));
+			login_act.activate.connect(param => {
+				this.account = new AccountInfo.load(param.get_string());
+			});	
+			this.notify["account"].connect(() => {	// Make the menu repond to changes in the account
+				login_act.set_state(new Variant.string((this.account != null) ? this.account.internal_id : ""));
+			});	
+			this.add_action(login_act);
+
+			this.add_action_entries({
+				{"settings", () => {
+					var sett = new SettingsWindow() { modal = true, transient_for = this };
+					sett.show();
+				}, null, null, null},	
+				{"add-account", () => {
+					this.run_login_dialog(null, (token, inst, uname) => {
+						if (token != null)
+						{
+							this.account = new AccountInfo.create() {
+								inst = inst,
+								uname = uname
+							};	
+
+							string[] ids = this.account_ids;
+							ids += this.account.internal_id;
+							this.account_ids = ids;
+						}	
+					});	
+				}, null, null, null},	
+				{"remove-account", () => {
+					this.account = null;
+
+					// Filter out of array
+					string[] ids = {};
+					foreach (var id in this.account_ids)
+						if (id != this.account.internal_id)
+							ids += id;
+					this.account_ids = ids;
+				}, null, null, null}	
+			}, this);	
+		}
+
+		delegate void OnLoginSuccessfulCb(string? token, string inst, string uname);
+
+		void run_login_dialog(AccountInfo? acc, OnLoginSuccessfulCb? cb)
+		{
+			var dlg = new LoginDialog() { modal = true, transient_for = this };
+			if (acc != null)
+			{
+				dlg.inst_entry.text = acc.inst;
+				dlg.acc_entry.text  = acc.uname;
+			}
+			dlg.show();
+			
+			bool cb_called = false;
+			dlg.response.connect(rc => {
+				if (rc == Gtk.ResponseType.OK)
+				{
+					API.login.begin(dlg.inst_entry.text, dlg.acc_entry.text, dlg.pass_entry.text, (_, ctx) => {
+						try {
+							var token = API.login.end(ctx);		// First give an opportunity for login errors arise
+
+							cb(token, dlg.inst_entry.text, dlg.acc_entry.text);
+							cb_called = true;
+
+							dlg.close();
+						}
+						catch (Error err)
+						{
+							var d2 = new Gtk.MessageDialog(dlg, Gtk.DialogFlags.MODAL, Gtk.MessageType.ERROR, Gtk.ButtonsType.OK, null) {
+								text = "Login failed",
+								secondary_text = err.message,
+							};
+							d2.response.connect(_ => d2.close());
+							d2.show();
+						}
+					});
+				}
+				else
+				{
+					if (!cb_called)
+						cb(null, dlg.inst_entry.text, dlg.acc_entry.text);
+				}
+			});
 		}
 
 		class CommunityListRow : Gtk.Box
@@ -213,11 +373,10 @@ namespace Lemmy.Desktop
 			}
 		}
 
-		void on_account_changed()
+		void on_new_login()
 		{
-			stdout.printf("on_account_changed\n");
 			this.u_subscribed.remove_all();
-			sess.get_subscribed.begin(this.u_subscribed);
+			session.get_subscribed.begin(this.u_subscribed);
 		}
 	}
 

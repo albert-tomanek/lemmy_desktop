@@ -49,6 +49,8 @@
 	(2,8,"GtkWidget","hexpand","True",None,None,None,None,None,None,None,None,None),
 	(2,8,"GtkWidget","vexpand","True",None,None,None,None,None,None,None,None,None),
 	(2,9,"GtkColumnView","model",None,None,None,None,None,29,None,None,None,None),
+	(2,9,"GtkWidget","valign","start",None,None,None,None,None,None,None,None,None),
+	(2,9,"GtkWidget","vexpand-set","True",None,None,None,None,None,None,None,None,None),
 	(2,13,"GtkWidget","vexpand","True",None,None,None,None,None,None,None,None,None),
 	(2,19,"GtkWidget","css-classes","toolbar",None,None,None,None,None,None,None,None,None),
 	(2,20,"GtkWidget","hexpand","True",None,None,None,None,None,None,None,None,None),

@@ -11,6 +11,40 @@ errordomain Lemmy.APIError {
 
 namespace Lemmy.API
 {
+    async string login(string inst, string uname, string passwd) throws Error
+    {
+        var soup = new Soup.Session();
+        
+        var msg = new Soup.Message ("POST", @"https://$inst/api/v3/user/login");
+        var body = @"{\"username_or_email\": \"$uname\", \"password\": \"$passwd\"}";
+        msg.set_request_body_from_bytes("application/json", new Bytes (body.data));
+        
+        var response = yield soup.send_and_read_async(msg, 0, null);
+        var? token = json_get("$.jwt", (string) response.get_data()).get_string();
+
+        if (token != null)
+            return token;
+        else
+            throw new APIError.LOGIN(json_get("$.error", (string) response.get_data()).get_string());
+    }
+
+    async bool check_token(string inst, string token) throws Error
+    {
+        var soup = new Soup.Session();
+        
+        var request = new Soup.Message ("GET", @"https://$inst/api/v3/user/validate_auth");
+        request.request_headers.append("Authorization", "Bearer " + token);
+        
+        var response = yield soup.send_and_read_async(request, 0, null);
+        bool? success = json_get("$.success", (string) response.get_data().copy()).get_boolean();
+
+        if (success != null)
+            return success;
+        else
+            return false;
+            //  throw new APIError.LOGIN(json_get("$.error", (string) response.get_data()).get_string());
+    }
+
     class Session
     {
         internal Soup.Session soup;
@@ -20,23 +54,18 @@ namespace Lemmy.API
 
         public string token { get; private set; }
 
-        public static async Session login(string inst, string uname, string passwd) throws Error
+        public Session(string inst, string uname, string token)
         {
-            var sess = new Session() { inst = inst, uname = uname };
-            sess.soup = new Soup.Session();
-            
-            var msg = new Soup.Message ("POST", @"https://$(inst)/api/v3/user/login");
-            var body = @"{\"username_or_email\": \"$uname\", \"password\": \"$passwd\"}";
-            msg.set_request_body_from_bytes("application/json", new Bytes (body.data));
-            
-            var response = yield sess.soup.send_and_read_async(msg, 0, null);
-            
-            sess.token = json_get("$.jwt", (string) response.get_data()).get_string();
-            if (sess.token == null)
-                throw new APIError.LOGIN(json_get("$.error", (string) response.get_data()).get_string());
+            this.inst = inst;
+            this.uname = uname;
+            this.token = token;
 
-            return sess;
+            this.soup = new Soup.Session();
         }
+
+        //  public static async Session? login_with_token(const Desktop.AccountInfo acc) throws Error
+        //  {
+        //  }
 
         //  public static async Session? login_with_token(string jwt) throws Error  // Returns null if token expored. Then user must login manually.
         //  {
@@ -59,7 +88,7 @@ namespace Lemmy.API
         public async void get_subscribed(ListStore list) throws Error
         requires(list.item_type == typeof(Handles.Community))
         {
-            stdout.printf("A %d %d\n", (int) list.get_n_items(), (int) (-1 < (int) list.get_n_items()));
+            //  stdout.printf("A %d %d\n", (int) list.get_n_items(), (int) (-1 < (int) list.get_n_items()));
             for (int old_length = -1, page = 1; old_length < (int) list.get_n_items(); page++) // We stop iterating once the pages (ie. additions) have size 0.
             {
                 old_length = (int) list.get_n_items();

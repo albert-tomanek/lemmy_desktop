@@ -58,6 +58,8 @@
                         <property name="model">
                           <object class="GtkSingleSelection" id="posts_selection"/>
                         </property>
+                        <property name="valign">start</property>
+                        <property name="vexpand-set">True</property>
                       </object>
                     </child>
                   </object>

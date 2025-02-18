@@ -1,5 +1,35 @@
 <schemalist>
   <schema id="com.github.albert-tomanek.lemmy-desktop" path="/com/github/albert-tomanek/lemmy-desktop/">
+    <child name="accounts" schema="com.github.albert-tomanek.lemmy-desktop.account"/>
+
+    <key name="account-ids" type="as">
+      <default>[]</default>
+    </key>
+    <key name="current-account" type="s">
+      <default>""</default>
+      <summary>Internal ID of the currently signed in account.</summary>
+    </key>
+    
+    <!-- UI -->
+    <key name="paned1-pos" type="i">
+      <default>200</default>
+    </key>
+    <key name="paned2-pos" type="i">
+      <default>300</default>
+    </key>
+  </schema>
+
+  <schema id="com.github.albert-tomanek.lemmy-desktop.account">
+    <key name="instance" type="s">
+      <default>""</default>
+    </key>
+    <key name="username" type="s">
+      <default>""</default>
+    </key>
+    <key name="jwt" type="s">
+      <default>""</default>
+    </key>
+
     <key name="blocked-instances" type="as">
       <default>[]</default>
     </key>
@@ -10,23 +40,5 @@
       <default>[]</default>
       <description>Format: "!&lt;comm&gt;@&lt;instance&gt;"</description>
     </key>
-
-    <key name="jwt" type="s">
-      <default>""</default>
-      <description>Token to use with API.</description>
-    </key>
-
-    <key name="paned1-pos" type="i">
-      <default>200</default>
-      <!-- <summary>How much the red channel should be boosted by in anaglyphs.</summary>
-      <description>
-        In some anaglyphic glasses the red filter is darker than the blue filter. Boosting the red channel can compensate for this. This property is the coefficient that the red channel is multiplied by.
-      </description> -->
-    </key>
-
-    <key name="paned2-pos" type="i">
-      <default>300</default>
-    </key>
-
   </schema>
 </schemalist>

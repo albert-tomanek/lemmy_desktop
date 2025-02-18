@@ -14,18 +14,24 @@
         <attribute name="label">_Quit</attribute>
       </item>
     </submenu>
-    <submenu>
+    <submenu id="account_subm">
       <attribute name="label">_Account</attribute>
-      <section id="accounts"/>
       <section>
         <item>
-          <attribute name="label">Log _out</attribute>
+          <attribute name="action">win.remove-account</attribute>
+          <attribute name="label">_Remove account</attribute>
         </item>
         <item>
-          <attribute name="action">win.login</attribute>
+          <attribute name="action">win.add-account</attribute>
           <attribute name="label">_Add account</attribute>
         </item>
       </section>
+    </submenu>
+    <submenu>
+      <attribute name="label">_Community</attribute>
+    </submenu>
+    <submenu>
+      <attribute name="label">_Post</attribute>
     </submenu>
   </menu>
 </interface>

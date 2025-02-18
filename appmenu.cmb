@@ -9,11 +9,12 @@
 	(1,2,"(submenu)",None,1,None,None,None,-1,None,None),
 	(1,3,"(item)",None,2,None,None,None,-1,None,None),
 	(1,4,"(item)",None,2,None,None,None,-1,None,None),
-	(1,5,"(submenu)",None,1,None,None,None,-1,None,None),
-	(1,6,"(section)","accounts",5,None,None,None,-1,None,None),
+	(1,5,"(submenu)","account_subm",1,None,None,None,-1,None,None),
 	(1,7,"(section)",None,5,None,None,None,-1,None,None),
 	(1,8,"(item)",None,7,None,None,None,-1,None,None),
-	(1,9,"(item)",None,7,None,None,None,-1,None,None)
+	(1,9,"(item)",None,7,None,None,None,-1,None,None),
+	(1,10,"(submenu)",None,1,None,None,None,-1,None,None),
+	(1,11,"(submenu)",None,1,None,None,None,-1,None,None)
   </object>
   <object_property>
 	(1,2,"(submenu)","label","_File",None,None,None,None,None,None,None,None,None),
@@ -21,8 +22,11 @@
 	(1,3,"(item)","label","_Settings",None,None,None,None,None,None,None,None,None),
 	(1,4,"(item)","label","_Quit",None,None,None,None,None,None,None,None,None),
 	(1,5,"(submenu)","label","_Account",None,None,None,None,None,None,None,None,None),
-	(1,8,"(item)","label","Log _out",None,None,None,None,None,None,None,None,None),
-	(1,9,"(item)","action","win.login",None,None,None,None,None,None,None,None,None),
-	(1,9,"(item)","label","_Add account",None,None,None,None,None,None,None,None,None)
+	(1,8,"(item)","action","win.remove-account",None,None,None,None,None,None,None,None,None),
+	(1,8,"(item)","label","_Remove account",None,None,None,None,None,None,None,None,None),
+	(1,9,"(item)","action","win.add-account",None,None,None,None,None,None,None,None,None),
+	(1,9,"(item)","label","_Add account",None,None,None,None,None,None,None,None,None),
+	(1,10,"(submenu)","label","_Community",None,None,None,None,None,None,None,None,None),
+	(1,11,"(submenu)","label","_Post",None,None,None,None,None,None,None,None,None)
   </object_property>
 </cambalache-project>
