@@ -12,10 +12,11 @@
 	(1,8,"GtkBox",None,7,None,None,None,None,None,None),
 	(1,9,"GtkLabel","body_label",8,None,None,None,None,None,None),
 	(1,10,"GtkNotebookPage","media_tab",3,None,"tab",None,-1,None,None),
-	(1,11,"GtkBox",None,10,None,None,None,-1,None,None)
+	(1,11,"GtkBox","media_hole",10,None,None,None,-1,None,None)
   </object>
   <object_property>
 	(1,1,"GtkOrientable","orientation","vertical",None,None,None,None,None,None,None,None,None),
+	(1,3,"GtkNotebook","tab-pos","bottom",None,None,None,None,None,None,None,None,None),
 	(1,3,"GtkWidget","hexpand","True",None,None,None,None,None,None,None,None,None),
 	(1,3,"GtkWidget","vexpand","True",None,None,None,None,None,None,None,None,None),
 	(1,6,"GtkNotebookPage","child",None,None,None,None,None,7,None,None,None,None),
@@ -34,6 +35,8 @@
 	(1,9,"GtkWidget","valign","start",None,None,None,None,None,None,None,None,None),
 	(1,10,"GtkNotebookPage","child",None,None,None,None,None,11,None,None,None,None),
 	(1,10,"GtkNotebookPage","position","1",None,None,None,None,None,None,None,None,None),
-	(1,10,"GtkNotebookPage","tab-label","Media",None,None,None,None,None,None,None,None,None)
+	(1,10,"GtkNotebookPage","tab-label","Media",None,None,None,None,None,None,None,None,None),
+	(1,11,"GtkWidget","hexpand","True",None,None,None,None,None,None,None,None,None),
+	(1,11,"GtkWidget","vexpand","True",None,None,None,None,None,None,None,None,None)
   </object_property>
 </cambalache-project>

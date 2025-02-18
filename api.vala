@@ -20,12 +20,12 @@ namespace Lemmy.API
         msg.set_request_body_from_bytes("application/json", new Bytes (body.data));
         
         var response = yield soup.send_and_read_async(msg, 0, null);
-        var? token = json_get("$.jwt", (string) response.get_data()).get_string();
+        var? token = json_get("$.jwt", (string) response.get_data().copy()).get_string();
 
         if (token != null)
             return token;
         else
-            throw new APIError.LOGIN(json_get("$.error", (string) response.get_data()).get_string());
+            throw new APIError.LOGIN(json_get("$.error", (string) response.get_data().copy()).get_string());
     }
 
     async bool check_token(string inst, string token) throws Error
@@ -36,13 +36,17 @@ namespace Lemmy.API
         request.request_headers.append("Authorization", "Bearer " + token);
         
         var response = yield soup.send_and_read_async(request, 0, null);
-        bool? success = json_get("$.success", (string) response.get_data().copy()).get_boolean();
+        var response_text = (string) response.get_data().copy();
+        response_text = response_text[:response_text.last_index_of_char('}')+1];
+        stdout.printf("%s\n", response_text);
+
+        bool? success = json_get("$.success", response_text).get_boolean();
 
         if (success != null)
             return success;
         else
             return false;
-            //  throw new APIError.LOGIN(json_get("$.error", (string) response.get_data()).get_string());
+            //  throw new APIError.LOGIN(json_get("$.error", (string) response.get_data().copy()).get_string());
     }
 
     class Session
@@ -78,9 +82,9 @@ namespace Lemmy.API
             
         //      var response = yield sess.soup.send_and_read_async(msg, 0, null);
             
-        //      sess.token = json_get("$.jwt", (string) response.get_data()).get_string();
+        //      sess.token = json_get("$.jwt", (string) response.get_data().copy()).get_string();
         //      if (sess.token == null)
-        //          throw new APIError.LOGIN(json_get("$.error", (string) response.get_data()).get_string());
+        //          throw new APIError.LOGIN(json_get("$.error", (string) response.get_data().copy()).get_string());
 
         //      return sess;
         //  }

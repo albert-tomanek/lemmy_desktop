@@ -1,0 +1,17 @@
+id: com.github.alberttomanek.lemmy-desktop
+runtime: org.gnome.Platform
+runtime-version: '47'
+sdk: org.gnome.Sdk
+command: lemmy_desktop
+finish-args:
+  - --socket=x11
+  - --socket=wayland
+  - --share=ipc
+  - --share=network
+modules:
+  - name: app
+    buildsystem: meson
+
+    sources:
+      - type: dir
+        path: ./

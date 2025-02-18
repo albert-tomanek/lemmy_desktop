@@ -7,7 +7,7 @@ resources = gnome.compile_resources(
 	export: true,
 )
 
-executable('main',
+executable('lemmy_desktop',
 	resources,
 	sources: [
 		'main.vala',
@@ -19,10 +19,12 @@ executable('main',
 		dependency('gtk4'),
 		dependency('libsoup-3.0'),
 		dependency('json-glib-1.0'),
+		dependency('webkitgtk-6.0'),
 	],
+	install: true
 )
 
-install_data('com.github.albert-tomanek.lemmy-desktop.gschema.xml', install_dir : get_option('datadir') / 'glib-2.0' / 'schemas')
+install_data('com.github.alberttomanek.lemmy-desktop.gschema.xml', install_dir : get_option('datadir') / 'glib-2.0' / 'schemas')
 gnome.post_install(
 	glib_compile_schemas: true
 )

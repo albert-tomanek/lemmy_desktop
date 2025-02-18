@@ -5,8 +5,7 @@ namespace Lemmy.Desktop
 	public class App : Gtk.Application {
 		public App () {
 			Object(
-				application_id: "com.github.albert-tomanek.lemmy-desktop",
-				flags: ApplicationFlags.HANDLES_OPEN
+				application_id: "com.github.alberttomanek.lemmy-desktop"
 			);
 		}
 
@@ -49,14 +48,14 @@ namespace Lemmy.Desktop
 
 		private void bind_props()
 		{
-			var sett = new Settings.with_path("com.github.albert-tomanek.lemmy-desktop.account", @"/com/github/albert-tomanek/lemmy-desktop/accounts/$internal_id/");
+			var sett = new Settings.with_path("com.github.alberttomanek.lemmy-desktop.account", @"/com/github/alberttomanek/lemmy-desktop/accounts/$internal_id/");
 			sett.bind("instance", this, "inst", SettingsBindFlags.DEFAULT);
 			sett.bind("username", this, "uname", SettingsBindFlags.DEFAULT);
 			sett.bind("jwt", this, "jwt", SettingsBindFlags.DEFAULT);
 		}
 	}
 
-	[GtkTemplate (ui = "/com/github/albert-tomanek/lemmy-desktop/main.ui")]
+	[GtkTemplate (ui = "/com/github/alberttomanek/lemmy-desktop/main.ui")]
 	class MainWindow : Gtk.ApplicationWindow
 	{
 		/* UI */
@@ -86,7 +85,7 @@ namespace Lemmy.Desktop
 		ListStore u_subscribed = new ListStore(typeof(Handles.Community));
 
 		construct {
-			var sett = new Settings ("com.github.albert-tomanek.lemmy-desktop");
+			var sett = new Settings ("com.github.alberttomanek.lemmy-desktop");
 			this.init_ui();
 			
 			sett.bind("paned1-pos", this.paned1, "position", SettingsBindFlags.DEFAULT);
@@ -103,24 +102,30 @@ namespace Lemmy.Desktop
 				}
 
 				API.check_token.begin(this.account.inst, this.account.jwt, (_, rc) => {
-					if (API.check_token.end(rc))
-					{
-						this.session = new API.Session(this.account.inst, this.account.uname, this.account.jwt);
+					try {
+						if (API.check_token.end(rc))
+						{
+							this.session = new API.Session(this.account.inst, this.account.uname, this.account.jwt);
+						}
+						else
+						{
+							// Ask them for their password again, just as if logging in
+							this.run_login_dialog(this.account, (new_jwt, inst, uname) => {
+								if (new_jwt != null)
+								{
+									this.session = new API.Session(this.account.inst, this.account.uname, new_jwt);
+									this.account.jwt = new_jwt;
+								}
+								else
+								{
+									this.account = null;
+								}
+							});
+						}
 					}
-					else
+					catch (Error err)
 					{
-						// Ask them for their password again, just as if logging in
-						this.run_login_dialog(this.account, (new_jwt, inst, uname) => {
-							if (new_jwt != null)
-							{
-								this.session = new API.Session(this.account.inst, this.account.uname, new_jwt);
-								this.account.jwt = new_jwt;
-							}
-							else
-							{
-								this.account = null;
-							}
-						});
+						errbox(this, "Login error", err.message);
 					}
 				});
 			});
@@ -144,7 +149,7 @@ namespace Lemmy.Desktop
 			// Menus
 
 			this.show_menubar = true;
-			var menus = new Gtk.Builder.from_resource("/com/github/albert-tomanek/lemmy-desktop/appmenu.ui");
+			var menus = new Gtk.Builder.from_resource("/com/github/alberttomanek/lemmy-desktop/appmenu.ui");
 			this.notify["application"].connect(() => {
 				this.application.set_menubar(menus.get_object("app_menu") as GLib.MenuModel);
 			});
@@ -184,7 +189,11 @@ namespace Lemmy.Desktop
 					},
 					null,
 					(@this, li) => {
-						((Gtk.Label) li.child).label = ((Handles.Post) li.item).name;
+						var lab  = (Gtk.Label) li.child;
+						var text = ((Handles.Post) li.item).name;
+
+						lab.label = text;
+						lab.tooltip_text = text;
 					},
 					null
 				)
@@ -332,12 +341,7 @@ namespace Lemmy.Desktop
 						}
 						catch (Error err)
 						{
-							var d2 = new Gtk.MessageDialog(dlg, Gtk.DialogFlags.MODAL, Gtk.MessageType.ERROR, Gtk.ButtonsType.OK, null) {
-								text = "Login failed",
-								secondary_text = err.message,
-							};
-							d2.response.connect(_ => d2.close());
-							d2.show();
+							errbox(dlg, "Login failed", err.message);
 						}
 					});
 				}
@@ -390,12 +394,12 @@ namespace Lemmy.Desktop
 		}
 	}
 
-	[GtkTemplate (ui = "/com/github/albert-tomanek/lemmy-desktop/settings.ui")]
+	[GtkTemplate (ui = "/com/github/alberttomanek/lemmy-desktop/settings.ui")]
 	class SettingsWindow : Gtk.Window
 	{
 	}
 
-	[GtkTemplate (ui = "/com/github/albert-tomanek/lemmy-desktop/login_dialog.ui")]
+	[GtkTemplate (ui = "/com/github/alberttomanek/lemmy-desktop/login_dialog.ui")]
 	class LoginDialog : Gtk.Dialog
 	{
 		[GtkChild] public unowned Gtk.Entry inst_entry;
@@ -423,7 +427,7 @@ namespace Lemmy.Desktop
 		}
 	}
 
-	[GtkTemplate (ui = "/com/github/albert-tomanek/lemmy-desktop/post_widget.ui")]
+	[GtkTemplate (ui = "/com/github/alberttomanek/lemmy-desktop/post_widget.ui")]
 	class PostView : Gtk.Box
 	{
 		[GtkChild] public unowned Gtk.Notebook notebook;
@@ -431,14 +435,34 @@ namespace Lemmy.Desktop
 		[GtkChild] public unowned Gtk.NotebookPage media_tab;
 
 		[GtkChild] public unowned Gtk.Label body_label;
+		[GtkChild] public unowned Gtk.Box   media_hole;
+		WebKit.WebView wv = new WebKit.WebView() { hexpand = true, vexpand = true };
+		internal string? media_url { get; set; }
 
 		public API.Handles.Post post { get; set; }
 
 		construct {
+			media_hole.append(wv);
+
 			deep_bind(
 				body_label, "label",
-				this, "post", typeof(PostView), "body", typeof(API.Handles.Post)
+				this, typeof(PostView), "post", typeof(API.Handles.Post), "body"
 			);
+			deep_bind(
+				this, "media-url",
+				this, typeof(PostView), "post", typeof(API.Handles.Post), "url"
+			);
+			notify["media-url"].connect(() => {
+				if (media_url != null)
+				{
+					wv.visible = true;
+					wv.load_uri(media_url);
+				}
+				else
+				{
+					wv.visible = false;
+				}
+			});
 
 			notify["post"].connect(() => {
 				if (post.url != null)
@@ -471,15 +495,12 @@ unowned Gtk.ExpressionWatch deep_bind(Object tgt_obj, string tgt_prop, Object sr
 	// 1. extract the va_args
 	for (var l = va_list(); true;)
 	{
-		string? prop = l.arg();
-		if (prop == null) break;
-
-		props += prop;
-
 		Type type = l.arg();
+		if (type == 0) break;
 		types += type;
-
-		stdout.printf(@"$type $prop\n");
+		
+		string prop = l.arg();
+		props += prop;
 	}
 
 	// 2. Construct the nested expression
@@ -512,4 +533,14 @@ Gtk.SignalListItemFactory new_signal_list_item_factory(
     if (unbind   != null) f.unbind.connect((t, li) => unbind(f, (Gtk.ListItem) li));
 
     return f;
+}
+
+void errbox (Gtk.Window parent, string title, string text)
+{
+	var d2 = new Gtk.MessageDialog(parent, Gtk.DialogFlags.MODAL, Gtk.MessageType.ERROR, Gtk.ButtonsType.OK, null) {
+		text = title,
+		secondary_text = text,
+	};
+	d2.response.connect(_ => d2.close());
+	d2.show();
 }

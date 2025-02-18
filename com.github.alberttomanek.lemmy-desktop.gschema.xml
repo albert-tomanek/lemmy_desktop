@@ -1,6 +1,6 @@
 <schemalist>
-  <schema id="com.github.albert-tomanek.lemmy-desktop" path="/com/github/albert-tomanek/lemmy-desktop/">
-    <child name="accounts" schema="com.github.albert-tomanek.lemmy-desktop.account"/>
+  <schema id="com.github.alberttomanek.lemmy-desktop" path="/com/github/alberttomanek/lemmy-desktop/">
+    <child name="accounts" schema="com.github.alberttomanek.lemmy-desktop.account"/>
 
     <key name="account-ids" type="as">
       <default>[]</default>
@@ -19,7 +19,7 @@
     </key>
   </schema>
 
-  <schema id="com.github.albert-tomanek.lemmy-desktop.account">
+  <schema id="com.github.alberttomanek.lemmy-desktop.account">
     <key name="instance" type="s">
       <default>""</default>
     </key>

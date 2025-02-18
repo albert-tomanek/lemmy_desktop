@@ -8,6 +8,7 @@
     <child>
       <object class="GtkNotebook" id="notebook">
         <property name="hexpand">True</property>
+        <property name="tab-pos">bottom</property>
         <property name="vexpand">True</property>
         <child type="tab">
           <object class="GtkNotebookPage" id="text_tab">
@@ -41,7 +42,10 @@
         <child type="tab">
           <object class="GtkNotebookPage" id="media_tab">
             <property name="child">
-              <object class="GtkBox"/>
+              <object class="GtkBox" id="media_hole">
+                <property name="hexpand">True</property>
+                <property name="vexpand">True</property>
+              </object>
             </property>
             <property name="position">1</property>
             <property name="tab-label">Media</property>

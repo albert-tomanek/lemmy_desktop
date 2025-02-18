@@ -31,8 +31,8 @@
   <object_property>
 	(2,1,"GtkApplicationWindow","show-menubar","True",None,None,None,None,None,None,None,None,None),
 	(2,1,"GtkWidget","name","FlyBy",None,None,None,None,None,None,None,None,None),
-	(2,1,"GtkWindow","default-height","500",None,None,None,None,None,None,None,None,None),
-	(2,1,"GtkWindow","default-width","700",None,None,None,None,None,None,None,None,None),
+	(2,1,"GtkWindow","default-height","700",None,None,None,None,None,None,None,None,None),
+	(2,1,"GtkWindow","default-width","1100",None,None,None,None,None,None,None,None,None),
 	(2,1,"GtkWindow","title","Lemmy",None,None,None,None,None,None,None,None,None),
 	(2,1,"GtkWindow","titlebar",None,None,None,None,None,None,None,None,None,None),
 	(2,2,"GtkPaned","end-child",None,None,None,None,None,5,None,None,None,None),
