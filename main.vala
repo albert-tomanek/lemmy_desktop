@@ -63,6 +63,9 @@ namespace Lemmy.Desktop
 		[GtkChild] unowned Gtk.Paned paned1;
 		[GtkChild] unowned Gtk.Paned paned2;
 
+		[GtkChild] unowned Gtk.Box post_hole;
+		PostView post_view = new PostView();
+
 		[GtkChild] unowned Gtk.ScrolledWindow posts_scrolledwindow;
 		[GtkChild] unowned Gtk.SingleSelection posts_selection;
 		[GtkChild] unowned Gtk.ColumnView posts_list;
@@ -135,6 +138,9 @@ namespace Lemmy.Desktop
 
 		void init_ui()
 		{
+			// Fill holes
+			this.post_hole.append(this.post_view);
+
 			// Menus
 
 			this.show_menubar = true;
@@ -210,6 +216,10 @@ namespace Lemmy.Desktop
 				if (this.posts_selection.model != null)
 					if (pos == Gtk.PositionType.BOTTOM)
 						(this.posts_selection.model as GroupIter).get_more_posts.begin();
+			});
+
+			this.posts_selection.notify["selected-item"].connect(() => {
+				this.post_view.post = this.posts_selection.selected_item as Handles.Post;
 			});
 
 			// comms_list
@@ -412,9 +422,78 @@ namespace Lemmy.Desktop
 			login_button.sensitive = (inst_entry.text != "" && acc_entry.text != "");
 		}
 	}
+
+	[GtkTemplate (ui = "/com/github/albert-tomanek/lemmy-desktop/post_widget.ui")]
+	class PostView : Gtk.Box
+	{
+		[GtkChild] public unowned Gtk.Notebook notebook;
+		[GtkChild] public unowned Gtk.NotebookPage text_tab;
+		[GtkChild] public unowned Gtk.NotebookPage media_tab;
+
+		[GtkChild] public unowned Gtk.Label body_label;
+
+		public API.Handles.Post post { get; set; }
+
+		construct {
+			deep_bind(
+				body_label, "label",
+				this, "post", typeof(PostView), "body", typeof(API.Handles.Post)
+			);
+
+			notify["post"].connect(() => {
+				if (post.url != null)
+					notebook.page = media_tab.position;
+				else
+					notebook.page = text_tab.position;
+			});
+		}
+	}
 }
 
 
+unowned Gtk.ExpressionWatch deep_bind(Object tgt_obj, string tgt_prop, Object src_obj, ...)
+{
+	// Equivalent:
+	//
+	//  var post_text = new Gtk.PropertyExpression(typeof(API.Handles.Post),
+	//  	new Gtk.PropertyExpression(typeof(PostView), null, "post"),
+	//  "body");
+	//  post_text.bind(body_label, "label", this);
+	//
+	//  deep_bind(
+	//  	body_label, "label",
+	//  	this, "post", typeof(PostView), "body", typeof(API.Handles.Post)
+	//  );
+
+	string[] props = {};
+	Type[]   types = {};
+
+	// 1. extract the va_args
+	for (var l = va_list(); true;)
+	{
+		string? prop = l.arg();
+		if (prop == null) break;
+
+		props += prop;
+
+		Type type = l.arg();
+		types += type;
+
+		stdout.printf(@"$type $prop\n");
+	}
+
+	// 2. Construct the nested expression
+	Gtk.Expression? exp = null;
+	for (int i = 0; i < props.length; i++)
+	{
+		exp = new Gtk.PropertyExpression(types[i], exp, props[i]);
+	}
+
+	if (exp != null)
+		return exp.bind(tgt_obj, tgt_prop, src_obj);
+	else
+		return null;
+}
 
 delegate void SignalListItemFactoryCallback(Gtk.SignalListItemFactory @this, Gtk.ListItem li);
 

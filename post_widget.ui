@@ -1,0 +1,53 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Created with Cambalache 0.90.4 -->
+<interface>
+  <!-- interface-name post_widget.ui -->
+  <requires lib="gtk" version="4.6"/>
+  <template class="LemmyDesktopPostView" parent="GtkBox">
+    <property name="orientation">vertical</property>
+    <child>
+      <object class="GtkNotebook" id="notebook">
+        <property name="hexpand">True</property>
+        <property name="vexpand">True</property>
+        <child type="tab">
+          <object class="GtkNotebookPage" id="text_tab">
+            <property name="child">
+              <object class="GtkScrolledWindow">
+                <child>
+                  <object class="GtkBox">
+                    <property name="css-classes">card</property>
+                    <property name="margin-bottom">12</property>
+                    <property name="margin-end">12</property>
+                    <property name="margin-start">12</property>
+                    <property name="margin-top">12</property>
+                    <child>
+                      <object class="GtkLabel" id="body_label">
+                        <property name="halign">start</property>
+                        <property name="margin-bottom">12</property>
+                        <property name="margin-end">12</property>
+                        <property name="margin-start">12</property>
+                        <property name="margin-top">12</property>
+                        <property name="valign">start</property>
+                        <property name="wrap">True</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </property>
+            <property name="tab-label">Post Text</property>
+          </object>
+        </child>
+        <child type="tab">
+          <object class="GtkNotebookPage" id="media_tab">
+            <property name="child">
+              <object class="GtkBox"/>
+            </property>
+            <property name="position">1</property>
+            <property name="tab-label">Media</property>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

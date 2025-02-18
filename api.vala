@@ -184,11 +184,21 @@ namespace Lemmy.API
         }
     }
 
-    // API objects
+    class Post
+    {
+        public Post(Session sess)
+        {
+
+        }
+    }
+
+    // JSON objects
 
     public class Handles.Post : Object, Json.Serializable   // https://stackoverflow.com/a/58461239/6130358
     {
         public string name { get; set; }
+        public string? url { get; set; default = null; }
+        public string? body { get; set; default = null; }
         public bool locked { get; set; }
 
         public Handles.User creator;
@@ -196,7 +206,7 @@ namespace Lemmy.API
         // Need parsing
         public string published { get; set; }
 
-        //  public Post get_post()
+        //  public Post get_post(Session sess)
     }
 
     public class Handles.User : Object, Json.Serializable

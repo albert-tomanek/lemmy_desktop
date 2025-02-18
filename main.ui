@@ -14,9 +14,9 @@
         <property name="end-child">
           <object class="GtkPaned" id="paned2">
             <property name="end-child">
-              <object class="GtkLabel">
+              <object class="GtkBox" id="post_hole">
                 <property name="hexpand">True</property>
-                <property name="label">comms</property>
+                <property name="vexpand">True</property>
               </object>
             </property>
             <property name="start-child">
