@@ -14,11 +14,11 @@ namespace Lemmy.API
     async string login(string inst, string uname, string passwd) throws Error
     {
         var soup = new Soup.Session();
-        
+
         var msg = new Soup.Message ("POST", @"https://$inst/api/v3/user/login");
         var body = @"{\"username_or_email\": \"$uname\", \"password\": \"$passwd\"}";
         msg.set_request_body_from_bytes("application/json", new Bytes (body.data));
-        
+
         var response = yield soup.send_and_read_async(msg, 0, null);
         var? token = json_get("$.jwt", (string) response.get_data().copy()).get_string();
 
@@ -30,11 +30,13 @@ namespace Lemmy.API
 
     async bool check_token(string inst, string token) throws Error
     {
+        // https://lemmy.readme.io/reference/validateauth
+
         var soup = new Soup.Session();
-        
+
         var request = new Soup.Message ("GET", @"https://$inst/api/v3/user/validate_auth");
         request.request_headers.append("Authorization", "Bearer " + token);
-        
+
         var response = yield soup.send_and_read_async(request, 0, null);
         var response_text = (string) response.get_data().copy();
         response_text = response_text[:response_text.last_index_of_char('}')+1];
@@ -75,13 +77,13 @@ namespace Lemmy.API
         //  {
         //      var sess = new Session() { inst = inst, uname = uname };
         //      sess.soup = new Soup.Session();
-            
+
         //      var msg = new Soup.Message ("POST", @"https://$(inst)/api/v3/user/validate_auth");
         //      var body = @"{\"username_or_email\": \"$uname\", \"password\": \"$passwd\"}";
         //      msg.set_request_body_from_bytes("application/json", new Bytes (body.data));
-            
+
         //      var response = yield sess.soup.send_and_read_async(msg, 0, null);
-            
+
         //      sess.token = json_get("$.jwt", (string) response.get_data().copy()).get_string();
         //      if (sess.token == null)
         //          throw new APIError.LOGIN(json_get("$.error", (string) response.get_data().copy()).get_string());
@@ -100,7 +102,7 @@ namespace Lemmy.API
                 var request = new Soup.Message ("GET", @"https://$(inst)/api/v3/community/list?type_=Subscribed&page=$(page)");
                 request.request_headers.append("Authorization", "Bearer " + this.token);
                 var bytes = yield soup.send_and_read_async(request, 0, null);
-                
+
                 var nodes = Json.Path.query("$.communities..community", Json.from_string((string) bytes.get_data())).get_array();
                 nodes.foreach_element((arr, i, node) => {
                     var c = (Handles.Community) Json.gobject_deserialize(typeof(Handles.Community), node);
@@ -136,7 +138,7 @@ namespace Lemmy.API
             var bytes = yield sess.soup.send_and_read_async(msg, 0, null);
 
             //
-            
+
             var pa = new Json.Parser();
             stdout.printf((string) bytes.get_data());
             pa.load_from_data((string) bytes.get_data(), bytes.length);
@@ -165,7 +167,7 @@ namespace Lemmy.API
                 posts.add(post);
             }
             r.end_member();
-            
+
             this.items_changed(_old_length, 0, n_items);
             return n_items;
         }
@@ -205,6 +207,7 @@ namespace Lemmy.API
         public string? body { get; set; default = null; }
         public bool locked { get; set; }
         public string ap_id { get; set; }
+        public bool featured_community { get; set; }
 
         public Handles.User creator;
 

@@ -1,5 +1,5 @@
 namespace Lemmy.Desktop
-{
+{//https://lemmy.world/api/v3/federated_instances
 	using API;
 
 	public class App : Gtk.Application {
@@ -85,15 +85,16 @@ namespace Lemmy.Desktop
 		ListStore u_subscribed = new ListStore(typeof(Handles.Community));
 
 		construct {
-			var sett = new Settings ("com.github.alberttomanek.lemmy-desktop");
+			this.load_css();
 			this.init_ui();
-
+			
 			this.bind_property("current-post", this.post_view, "post", BindingFlags.DEFAULT);
 			
+			var sett = new Settings ("com.github.alberttomanek.lemmy-desktop");
 			sett.bind("paned1-pos", this.paned1, "position", SettingsBindFlags.DEFAULT);
 			sett.bind("paned2-pos", this.paned2, "position", SettingsBindFlags.DEFAULT);
 			sett.bind("account-ids", this, "account-ids", SettingsBindFlags.DEFAULT);
-			
+
 			this.init_actions();
 
 			this.notify["account"].connect(() => {
@@ -143,6 +144,13 @@ namespace Lemmy.Desktop
 				this.account = new AccountInfo.load(current_account);
 		}
 
+		void load_css()
+		{
+			var css_provider = new Gtk.CssProvider();
+			css_provider.load_from_resource("/com/github/alberttomanek/lemmy-desktop/style.css");
+			Gtk.StyleContext.add_provider_for_display (Gdk.Display.get_default(), css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION);
+		}
+
 		void init_ui()
 		{
 			// Fill holes
@@ -180,7 +188,7 @@ namespace Lemmy.Desktop
 				title = "Title",
 				expand = true,
 				resizable = true,
-				
+
 				factory = new_signal_list_item_factory(
 					(@this, li) => {
 						li.child = new Gtk.Label(null) {
@@ -192,12 +200,18 @@ namespace Lemmy.Desktop
 					null,
 					(@this, li) => {
 						var lab  = (Gtk.Label) li.child;
-						var text = ((Handles.Post) li.item).name;
+						var post = (Handles.Post) li.item;
 
-						lab.label = text;
-						lab.tooltip_text = text;
+						lab.label = post.name;
+						lab.tooltip_text = post.name;
+
+						if (post.featured_community)
+							lab.parent.parent.add_css_class("pinned-post");
 					},
-					null
+					(@this, li) => {
+						var lab  = (Gtk.Label) li.child;
+						lab.parent.parent.remove_css_class("pinned-post");
+					}
 				)
 			});
 
@@ -205,8 +219,8 @@ namespace Lemmy.Desktop
 				title = "User",
 				expand = false,
 				resizable = true,
-				visible = false,
-				
+				visible = true,
+
 				factory = new_signal_list_item_factory(
 					(@this, li) => {
 						li.child = new Gtk.Label(null) {
@@ -241,7 +255,7 @@ namespace Lemmy.Desktop
 
 				var gi = new GroupIter(session, grp.instance, grp.name);
 				gi.get_more_posts.begin((a, b) => on_more_posts_gotten(a, b, gi));
-	
+
 				posts_selection.model = gi;
 			});
 
@@ -261,7 +275,7 @@ namespace Lemmy.Desktop
 				null
 			);
 		}
-		
+
 		void on_more_posts_gotten(Object? _, AsyncResult async_ctx, GroupIter gi)
 		{
 			// This is called at the end of the async function loading posts, and it keeps calling it again until the screen is full.
@@ -269,7 +283,7 @@ namespace Lemmy.Desktop
 
 			stdout.printf("======== %d %d %d\n", this.posts_list.get_height(), this.posts_scrolledwindow.get_height(), n_loaded);
 			if (this.posts_list.get_height() < this.posts_scrolledwindow.get_height() && n_loaded > 0)	// (The n_loaded check is to stop this loop in case the community has fewer posts than fit on the screen)
-				gi.get_more_posts.begin((a, b) => on_more_posts_gotten(a, b, gi));		
+				gi.get_more_posts.begin((a, b) => on_more_posts_gotten(a, b, gi));
 		}
 
 		void init_actions()
@@ -278,17 +292,17 @@ namespace Lemmy.Desktop
 			var login_act = new SimpleAction.stateful("login", VariantType.STRING, new Variant.string(""));
 			login_act.activate.connect(param => {
 				this.account = new AccountInfo.load(param.get_string());
-			});	
+			});
 			this.notify["account"].connect(() => {	// Make the menu repond to changes in the account
 				login_act.set_state(new Variant.string((this.account != null) ? this.account.internal_id : ""));
-			});	
+			});
 			this.add_action(login_act);
 
 			this.add_action_entries({
 				{"settings", () => {
 					var sett = new SettingsWindow() { modal = true, transient_for = this };
 					sett.show();
-				}, null, null, null},	
+				}, null, null, null},
 				{"add-account", () => {
 					this.run_login_dialog(null, (token, inst, uname) => {
 						if (token != null)
@@ -296,14 +310,14 @@ namespace Lemmy.Desktop
 							this.account = new AccountInfo.create() {
 								inst = inst,
 								uname = uname
-							};	
+							};
 
 							string[] ids = this.account_ids;
 							ids += this.account.internal_id;
 							this.account_ids = ids;
-						}	
-					});	
-				}, null, null, null},	
+						}
+					});
+				}, null, null, null},
 				{"remove-account", () => {
 					this.account = null;
 
@@ -313,7 +327,7 @@ namespace Lemmy.Desktop
 						if (id != this.account.internal_id)
 							ids += id;
 					this.account_ids = ids;
-				}, null, null, null}	
+				}, null, null, null}
 			}, this);
 
 			/* Post */
@@ -340,7 +354,7 @@ namespace Lemmy.Desktop
 				dlg.acc_entry.text  = acc.uname;
 			}
 			dlg.show();
-			
+
 			bool cb_called = false;
 			dlg.response.connect(rc => {
 				if (rc == Gtk.ResponseType.OK)
@@ -394,7 +408,7 @@ namespace Lemmy.Desktop
 				{
 					this.icon.opacity = 1.0;
 
-					var bytes = yield (new Soup.Session()).send_and_read_async(new Soup.Message ("GET", url), 0, null);	
+					var bytes = yield (new Soup.Session()).send_and_read_async(new Soup.Message ("GET", url), 0, null);
 					this.icon.gicon = new GLib.BytesIcon(bytes);
 				}
 				else
@@ -512,7 +526,7 @@ unowned Gtk.ExpressionWatch deep_bind(Object tgt_obj, string tgt_prop, Object sr
 		Type type = l.arg();
 		if (type == 0) break;
 		types += type;
-		
+
 		string prop = l.arg();
 		props += prop;
 	}

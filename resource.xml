@@ -6,5 +6,6 @@
     <file compressed="true" preprocess="xml-stripblanks">settings.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">login_dialog.ui</file>
     <file compressed="true" preprocess="xml-stripblanks">post_widget.ui</file>
+    <file compressed="true">style.css</file>
   </gresource>
 </gresources>
