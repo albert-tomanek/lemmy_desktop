@@ -2,7 +2,7 @@
 <!-- Created with Cambalache 0.90.4 -->
 <interface>
   <!-- interface-name post_widget.ui -->
-  <requires lib="gtk" version="4.6"/>
+  <requires lib="gtk" version="4.12"/>
   <template class="LemmyDesktopPostView" parent="GtkBox">
     <property name="orientation">vertical</property>
     <child>
@@ -24,6 +24,7 @@
                     <child>
                       <object class="GtkLabel" id="body_label">
                         <property name="halign">start</property>
+                        <property name="hexpand">True</property>
                         <property name="margin-bottom">12</property>
                         <property name="margin-end">12</property>
                         <property name="margin-start">12</property>
@@ -49,6 +50,31 @@
             </property>
             <property name="position">1</property>
             <property name="tab-label">Media</property>
+          </object>
+        </child>
+        <child type="action-end">
+          <object class="GtkBox">
+            <child>
+              <object class="GtkToggleButton" id="b_upvote">
+                <property name="css-classes">flat</property>
+                <property name="icon-name">go-up</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="upvotes_label"/>
+            </child>
+            <child>
+              <object class="GtkToggleButton" id="b_downvote">
+                <property name="css-classes">flat</property>
+                <property name="icon-name">go-down</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkToggleButton" id="b_save_post">
+                <property name="css-classes">flat</property>
+                <property name="icon-name">bookmarks</property>
+              </object>
+            </child>
           </object>
         </child>
       </object>

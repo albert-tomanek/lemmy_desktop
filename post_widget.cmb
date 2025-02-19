@@ -12,7 +12,12 @@
 	(1,8,"GtkBox",None,7,None,None,None,None,None,None),
 	(1,9,"GtkLabel","body_label",8,None,None,None,None,None,None),
 	(1,10,"GtkNotebookPage","media_tab",3,None,"tab",None,-1,None,None),
-	(1,11,"GtkBox","media_hole",10,None,None,None,-1,None,None)
+	(1,11,"GtkBox","media_hole",10,None,None,None,-1,None,None),
+	(1,12,"GtkBox",None,3,None,"action-end",None,-1,None,None),
+	(1,13,"GtkToggleButton","b_upvote",12,None,None,None,-1,None,None),
+	(1,14,"GtkLabel","upvotes_label",12,None,None,None,-1,None,None),
+	(1,15,"GtkToggleButton","b_downvote",12,None,None,None,2,None,None),
+	(1,16,"GtkToggleButton","b_save_post",12,None,None,None,3,None,None)
   </object>
   <object_property>
 	(1,1,"GtkOrientable","orientation","vertical",None,None,None,None,None,None,None,None,None),
@@ -28,6 +33,7 @@
 	(1,8,"GtkWidget","margin-top","12",None,None,None,None,None,None,None,None,None),
 	(1,9,"GtkLabel","wrap","True",None,None,None,None,None,None,None,None,None),
 	(1,9,"GtkWidget","halign","start",None,None,None,None,None,None,None,None,None),
+	(1,9,"GtkWidget","hexpand","True",None,None,None,None,None,None,None,None,None),
 	(1,9,"GtkWidget","margin-bottom","12",None,None,None,None,None,None,None,None,None),
 	(1,9,"GtkWidget","margin-end","12",None,None,None,None,None,None,None,None,None),
 	(1,9,"GtkWidget","margin-start","12",None,None,None,None,None,None,None,None,None),
@@ -37,6 +43,12 @@
 	(1,10,"GtkNotebookPage","position","1",None,None,None,None,None,None,None,None,None),
 	(1,10,"GtkNotebookPage","tab-label","Media",None,None,None,None,None,None,None,None,None),
 	(1,11,"GtkWidget","hexpand","True",None,None,None,None,None,None,None,None,None),
-	(1,11,"GtkWidget","vexpand","True",None,None,None,None,None,None,None,None,None)
+	(1,11,"GtkWidget","vexpand","True",None,None,None,None,None,None,None,None,None),
+	(1,13,"GtkButton","icon-name","go-up",None,None,None,None,None,None,None,None,None),
+	(1,13,"GtkWidget","css-classes","flat",None,None,None,None,None,None,None,None,None),
+	(1,15,"GtkButton","icon-name","go-down",None,None,None,None,None,None,None,None,None),
+	(1,15,"GtkWidget","css-classes","flat",None,None,None,None,None,None,None,None,None),
+	(1,16,"GtkButton","icon-name","bookmarks",None,None,None,None,None,None,None,None,None),
+	(1,16,"GtkWidget","css-classes","flat",None,None,None,None,None,None,None,None,None)
   </object_property>
 </cambalache-project>

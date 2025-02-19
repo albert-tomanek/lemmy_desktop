@@ -14,10 +14,21 @@
 	(1,8,"(item)",None,7,None,None,None,-1,None,None),
 	(1,9,"(item)",None,7,None,None,None,-1,None,None),
 	(1,10,"(submenu)",None,1,None,None,None,-1,None,None),
-	(1,11,"(submenu)",None,1,None,None,None,-1,None,None)
+	(1,11,"(submenu)",None,1,None,None,None,-1,None,None),
+	(1,12,"(section)",None,11,None,None,None,-1,None,None),
+	(1,13,"(item)",None,12,None,None,None,-1,None,None),
+	(1,14,"(item)",None,12,None,None,None,1,None,None),
+	(1,15,"(item)",None,12,None,None,None,2,None,None),
+	(1,16,"(submenu)","media_subm",1,None,None,None,-1,None,None),
+	(1,17,"(item)",None,16,None,None,None,-1,None,None),
+	(1,18,"(item)",None,16,None,None,None,-1,None,None),
+	(1,19,"(section)",None,11,None,None,None,-1,None,None),
+	(1,20,"(item)",None,19,None,None,None,-1,None,None),
+	(1,21,"(item)",None,10,None,None,None,-1,None,None),
+	(1,22,"(item)",None,10,None,None,None,-1,None,None)
   </object>
   <object_property>
-	(1,2,"(submenu)","label","_File",None,None,None,None,None,None,None,None,None),
+	(1,2,"(submenu)","label","_Menu",None,None,None,None,None,None,None,None,None),
 	(1,3,"(item)","action","win.settings",None,None,None,None,None,None,None,None,None),
 	(1,3,"(item)","label","_Settings",None,None,None,None,None,None,None,None,None),
 	(1,4,"(item)","label","_Quit",None,None,None,None,None,None,None,None,None),
@@ -27,6 +38,22 @@
 	(1,9,"(item)","action","win.add-account",None,None,None,None,None,None,None,None,None),
 	(1,9,"(item)","label","_Add account",None,None,None,None,None,None,None,None,None),
 	(1,10,"(submenu)","label","_Community",None,None,None,None,None,None,None,None,None),
-	(1,11,"(submenu)","label","_Post",None,None,None,None,None,None,None,None,None)
+	(1,11,"(submenu)","label","_Post",None,None,None,None,None,None,None,None,None),
+	(1,13,"(item)","action","win.upvote",None,None,None,None,None,None,None,None,None),
+	(1,13,"(item)","label","_Upvote (U)",None,None,None,None,None,None,None,None,None),
+	(1,14,"(item)","action","win.downvote",None,None,None,None,None,None,None,None,None),
+	(1,14,"(item)","label","_Downvote (D)",None,None,None,None,None,None,None,None,None),
+	(1,15,"(item)","action","win.save-post",None,None,None,None,None,None,None,None,None),
+	(1,15,"(item)","label","_Save (S)",None,None,None,None,None,None,None,None,None),
+	(1,16,"(submenu)","label","M_edia",None,None,None,None,None,None,None,None,None),
+	(1,17,"(item)","action","win.copy-media-url",None,None,None,None,None,None,None,None,None),
+	(1,17,"(item)","label","Copy _URL",None,None,None,None,None,None,None,None,None),
+	(1,18,"(item)","action","win.download-media",None,None,None,None,None,None,None,None,None),
+	(1,18,"(item)","icon","document-save",None,None,None,None,None,None,None,None,None),
+	(1,18,"(item)","label","_Save as...",None,None,None,None,None,None,None,None,None),
+	(1,20,"(item)","action","win.copy-post-url",None,None,None,None,None,None,None,None,None),
+	(1,20,"(item)","label","Copy _URL",None,None,None,None,None,None,None,None,None),
+	(1,21,"(item)","label","_Block",None,None,None,None,None,None,None,None,None),
+	(1,22,"(item)","label","_Subscribe",None,None,None,None,None,None,None,None,None)
   </object_property>
 </cambalache-project>

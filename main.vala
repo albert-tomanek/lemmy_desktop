@@ -79,7 +79,7 @@ namespace Lemmy.Desktop
 		internal API.Session? session { get; set; default = null; }		// This is obtained by logging in and used to communicate with the API
 
 		// View state
-		//  public Post current_post { get; set; }
+		public API.Handles.Post current_post { get; set; }
 		//  public Community current_comm { get; set; }
 
 		ListStore u_subscribed = new ListStore(typeof(Handles.Community));
@@ -87,6 +87,8 @@ namespace Lemmy.Desktop
 		construct {
 			var sett = new Settings ("com.github.alberttomanek.lemmy-desktop");
 			this.init_ui();
+
+			this.bind_property("current-post", this.post_view, "post", BindingFlags.DEFAULT);
 			
 			sett.bind("paned1-pos", this.paned1, "position", SettingsBindFlags.DEFAULT);
 			sett.bind("paned2-pos", this.paned2, "position", SettingsBindFlags.DEFAULT);
@@ -228,7 +230,7 @@ namespace Lemmy.Desktop
 			});
 
 			this.posts_selection.notify["selected-item"].connect(() => {
-				this.post_view.post = this.posts_selection.selected_item as Handles.Post;
+				this.current_post = this.posts_selection.selected_item as Handles.Post;
 			});
 
 			// comms_list
@@ -272,6 +274,7 @@ namespace Lemmy.Desktop
 
 		void init_actions()
 		{
+			/* Accounts */
 			var login_act = new SimpleAction.stateful("login", VariantType.STRING, new Variant.string(""));
 			login_act.activate.connect(param => {
 				this.account = new AccountInfo.load(param.get_string());
@@ -311,7 +314,19 @@ namespace Lemmy.Desktop
 							ids += id;
 					this.account_ids = ids;
 				}, null, null, null}	
-			}, this);	
+			}, this);
+
+			/* Post */
+			this.add_action_entries({
+				{"copy-post-url", () => {
+					if (this.current_post != null)
+					{
+						Gdk.Display.get_default().get_clipboard().set_text(
+							this.current_post.ap_id
+						);
+					}
+				}, null, null, null}
+			}, this);
 		}
 
 		delegate void OnLoginSuccessfulCb(string? token, string inst, string uname);
@@ -436,13 +451,13 @@ namespace Lemmy.Desktop
 
 		[GtkChild] public unowned Gtk.Label body_label;
 		[GtkChild] public unowned Gtk.Box   media_hole;
-		WebKit.WebView wv = new WebKit.WebView() { hexpand = true, vexpand = true };
+		public WebKit.WebView webview = new WebKit.WebView() { hexpand = true, vexpand = true };
 		internal string? media_url { get; set; }
 
 		public API.Handles.Post post { get; set; }
 
 		construct {
-			media_hole.append(wv);
+			media_hole.append(webview);
 
 			deep_bind(
 				body_label, "label",
@@ -455,12 +470,11 @@ namespace Lemmy.Desktop
 			notify["media-url"].connect(() => {
 				if (media_url != null)
 				{
-					wv.visible = true;
-					wv.load_uri(media_url);
+					webview.load_uri(media_url);
 				}
 				else
 				{
-					wv.visible = false;
+					webview.load_uri("about:blank");
 				}
 			});
 

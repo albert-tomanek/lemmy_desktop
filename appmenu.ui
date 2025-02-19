@@ -5,7 +5,7 @@
   <requires lib="gio" version="2.0"/>
   <menu id="app_menu">
     <submenu>
-      <attribute name="label">_File</attribute>
+      <attribute name="label">_Menu</attribute>
       <item>
         <attribute name="action">win.settings</attribute>
         <attribute name="label">_Settings</attribute>
@@ -29,9 +29,47 @@
     </submenu>
     <submenu>
       <attribute name="label">_Community</attribute>
+      <item>
+        <attribute name="label">_Block</attribute>
+      </item>
+      <item>
+        <attribute name="label">_Subscribe</attribute>
+      </item>
     </submenu>
     <submenu>
       <attribute name="label">_Post</attribute>
+      <section>
+        <item>
+          <attribute name="action">win.upvote</attribute>
+          <attribute name="label">_Upvote (U)</attribute>
+        </item>
+        <item>
+          <attribute name="action">win.downvote</attribute>
+          <attribute name="label">_Downvote (D)</attribute>
+        </item>
+        <item>
+          <attribute name="action">win.save-post</attribute>
+          <attribute name="label">_Save (S)</attribute>
+        </item>
+      </section>
+      <section>
+        <item>
+          <attribute name="action">win.copy-post-url</attribute>
+          <attribute name="label">Copy _URL</attribute>
+        </item>
+      </section>
+    </submenu>
+    <submenu id="media_subm">
+      <attribute name="label">M_edia</attribute>
+      <item>
+        <attribute name="action">win.copy-media-url</attribute>
+        <attribute name="label">Copy _URL</attribute>
+      </item>
+      <item>
+        <attribute name="action">win.download-media</attribute>
+        <attribute name="icon">document-save</attribute>
+        <attribute name="label">_Save as...</attribute>
+      </item>
     </submenu>
   </menu>
 </interface>

@@ -204,6 +204,7 @@ namespace Lemmy.API
         public string? url { get; set; default = null; }
         public string? body { get; set; default = null; }
         public bool locked { get; set; }
+        public string ap_id { get; set; }
 
         public Handles.User creator;
 
