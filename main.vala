@@ -247,6 +247,12 @@ namespace Lemmy.Desktop
 				this.current_post = this.posts_selection.selected_item as Handles.Post;
 			});
 
+			this.posts_list.activate.connect(idx => {
+				var post = this.posts_list.model.get_item(idx) as Handles.Post;
+				var c = new CommentsWindow(this, this.session, post);
+				c.show();
+			});
+
 			// comms_list
 
 			this.comm_selection.model = this.u_subscribed;

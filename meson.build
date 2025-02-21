@@ -11,7 +11,8 @@ executable('lemmy_desktop',
 	resources,
 	sources: [
 		'main.vala',
-		'api.vala'
+		'comments.vala',
+		'api.vala',
 	],
 	dependencies: [
 		dependency('glib-2.0'),

@@ -1,0 +1,27 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Created with Cambalache 0.90.4 -->
+<interface>
+  <!-- interface-name comments.ui -->
+  <requires lib="gtk" version="4.12"/>
+  <template class="LemmyDesktopCommentsWindow" parent="GtkWindow">
+    <property name="default-height">500</property>
+    <property name="default-width">600</property>
+    <property name="destroy-with-parent">True</property>
+    <child>
+      <object class="GtkScrolledWindow">
+        <child>
+          <object class="GtkListView" id="comment_view">
+            <property name="model">
+              <object class="GtkSingleSelection" id="comment_selection">
+                <property name="autoselect">False</property>
+                <property name="model">
+                  <object class="GtkFlattenListModel" id="comment_model"/>
+                </property>
+              </object>
+            </property>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>
