@@ -19,6 +19,7 @@
                 </property>
               </object>
             </property>
+            <property name="show-separators">True</property>
           </object>
         </child>
       </object>
