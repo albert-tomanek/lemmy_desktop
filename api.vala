@@ -132,11 +132,20 @@ namespace Lemmy.API
     {
         weak Comment? parent = null;
 
-        ListStore replies = new ListStore(typeof(Comment));
+        ListStore            replies = new ListStore(typeof(Comment));
+        Gtk.SortListModel    replies_sorted;
         Gtk.FlattenListModel flat;
 
         public Structs.Comment? data { get; construct; }
         public uint path_id { get; private set; }
+
+        public enum Sort
+        {
+            TOP,
+            NEW
+        }
+
+        public Sort sort { get; set; }
 
         public Comment(Structs.Comment data)
         {
@@ -149,7 +158,11 @@ namespace Lemmy.API
         }
 
         construct {
-            flat = new Gtk.FlattenListModel(replies);
+            GLib.CompareDataFunc<Comment> cmp = (a, b) => this.sort_comments(a, b);
+            replies_sorted = new Gtk.SortListModel(this.replies, new Gtk.CustomSorter(cmp));
+            this.notify["sort"].connect(() => replies_sorted.sorter.changed(Gtk.SorterChange.DIFFERENT));
+
+            flat = new Gtk.FlattenListModel(replies_sorted);
             flat.items_changed.connect(this.items_changed);
 
             if (this.data != null)
@@ -176,6 +189,16 @@ namespace Lemmy.API
 
         //
 
+        private int sort_comments(Comment a, Comment b)
+        {
+            switch (this.sort)
+            {
+                case Sort.TOP:
+                default:
+                    return (a.data.counts.score > b.data.counts.score) ? -1 : 1;
+            }
+        }
+
         public Comment? get_comment_at_path(uint[] path)
         {
             if (path.length == 0) return this;
@@ -195,6 +218,7 @@ namespace Lemmy.API
         {
             this.replies.append(repl);
             repl.parent = this;
+            this.bind_property("sort", repl, "sort", BindingFlags.DEFAULT);     // Sort setting should propagate down the whole tree.
         }
 
         public uint depth {
@@ -348,13 +372,22 @@ namespace Lemmy.API
 
             public string ap_id { get; set; }
         }
-
         public Comment comment { get; set; }
 
-        //  public class Counts : Object, Json.Serializable
-        //  {
-        //      public int id { get; set; }
-        //  }
+        public class Creator : Object, Json.Serializable
+        {
+            public string actor_id { get; set; }
+            public string name { get; set; }
+        }
+        public Creator creator { get; set; }
+
+        public class Counts : Object, Json.Serializable
+        {
+            public int score { get; set; }
+            public int upvotes { get; set; }
+            public int downvotes { get; set; }
+        }
+        public Counts counts { get; set; }
 
         public uint[] parent_path {
             owned get {

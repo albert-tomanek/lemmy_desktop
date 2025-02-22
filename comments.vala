@@ -9,6 +9,10 @@ namespace Lemmy.Desktop
         [GtkChild] public unowned Gtk.SingleSelection  comment_selection;
         [GtkChild] public unowned Gtk.FlattenListModel comment_model;
 
+        [GtkChild] public unowned Gtk.Label votes_label;
+        [GtkChild] public unowned Gtk.LinkButton user_button;
+
+        public API.Comment selected { get; set; }
         public API.Comment root_comment { get; set; default = new API.Comment.root(); }
 
         public CommentsWindow(Gtk.Window parent, API.Session sess, API.Handles.Post post)
@@ -35,20 +39,30 @@ namespace Lemmy.Desktop
 
             /*  */
 
+            this.comment_selection.bind_property("selected-item", this, "selected", BindingFlags.DEFAULT);
+            this.notify["selected"].connect(() => {
+                votes_label.label = "%d votes".printf(selected.data.counts.score);
+
+                var u = Uri.parse(selected.data.creator.actor_id, UriFlags.NONE);
+                user_button.label = "%s@%s".printf(selected.data.creator.name, u.get_host());
+            });
+
+            /*  */
+
             this.comment_view.factory = new_signal_list_item_factory(
                 (@this, li) => {
-                    li.child = new Gtk.Label(null) {
+                    var lab = new Gtk.Label(null) {
                         halign = Gtk.Align.START,
                         hexpand = true,
                         wrap = true
                     };
+                    markupify_label(lab);
+                    li.child = lab;
                 },
                 null,
                 (@this, li) => {
-                    // ((Gtk.Label) li.child).label = li.position.to_string() + ((API.Comment) li.item).data.comment?.content;
-                    ((Gtk.Label) li.child).label = ((API.Comment) li.item).data.comment?.content ?? li.position.to_string();
-                    ((Gtk.Label) li.child).margin_start = (int) ((API.Comment) li.item).depth * 20;
-                    //  stdout.printf("\t%u %p\n", li.position, ((API.Comment) li.item));
+                    ((Gtk.Label) li.child).label = ((API.Comment) li.item).data.comment?.content;
+                    ((Gtk.Label) li.child).margin_start = (int) ((API.Comment) li.item).depth * 40;
                 },
                 null
             );

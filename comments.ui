@@ -7,19 +7,43 @@
     <property name="default-height">500</property>
     <property name="default-width">600</property>
     <property name="destroy-with-parent">True</property>
+    <property name="focus-widget">comment_view</property>
     <child>
-      <object class="GtkScrolledWindow">
+      <object class="GtkBox">
+        <property name="orientation">vertical</property>
+        <property name="vexpand">True</property>
         <child>
-          <object class="GtkListView" id="comment_view">
-            <property name="model">
-              <object class="GtkSingleSelection" id="comment_selection">
-                <property name="autoselect">False</property>
+          <object class="GtkScrolledWindow">
+            <property name="vexpand">True</property>
+            <child>
+              <object class="GtkListView" id="comment_view">
                 <property name="model">
-                  <object class="GtkFlattenListModel" id="comment_model"/>
+                  <object class="GtkSingleSelection" id="comment_selection">
+                    <property name="autoselect">False</property>
+                    <property name="model">
+                      <object class="GtkFlattenListModel" id="comment_model"/>
+                    </property>
+                  </object>
                 </property>
+                <property name="show-separators">True</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child>
+          <object class="GtkCenterBox">
+            <property name="center-widget">
+              <object class="GtkLinkButton" id="user_button"/>
+            </property>
+            <property name="css-classes">toolbar</property>
+            <property name="end-widget">
+              <object class="GtkBox">
+                <property name="spacing">6</property>
+                <child>
+                  <object class="GtkLabel" id="votes_label"/>
+                </child>
               </object>
             </property>
-            <property name="show-separators">True</property>
           </object>
         </child>
       </object>

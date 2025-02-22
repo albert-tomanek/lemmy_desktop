@@ -478,6 +478,7 @@ namespace Lemmy.Desktop
 
 		construct {
 			media_hole.append(webview);
+			markupify_label(body_label);
 
 			deep_bind(
 				body_label, "label",
@@ -520,7 +521,7 @@ unowned Gtk.ExpressionWatch deep_bind(Object tgt_obj, string tgt_prop, Object sr
 	//
 	//  deep_bind(
 	//  	body_label, "label",
-	//  	this, "post", typeof(PostView), "body", typeof(API.Handles.Post)
+	//  	this, typeof(PostView), "post", typeof(API.Handles.Post), "body"
 	//  );
 
 	string[] props = {};
@@ -577,4 +578,47 @@ void errbox (Gtk.Window parent, string title, string text)
 	};
 	d2.response.connect(_ => d2.close());
 	d2.show();
+}
+
+void markupify_label(Gtk.Label lab)
+{
+	lab.use_markup = true;
+
+	lab.set_data<bool>("ignore-text-change", false);
+	lab.notify["label"].connect(() => {
+		if (lab.get_data<bool>("ignore-text-change"))
+		{
+			// `::notify` triggered by this callback
+			lab.set_data<bool>("ignore-text-change", false);
+		}
+		else
+		{
+			lab.set_data<bool>("ignore-text-change", true);
+
+			string text = lab.label;
+
+			// https://docs.gtk.org/Pango/pango_markup.html
+			// https://docs.gtk.org/gtk4/class.Label.html#markup-styled-text
+			// https://join-lemmy.org/docs/users/02-media.html
+
+			string URL = "http(s)?:\\/\\/?[\\w.-]+(?:\\.[\\w\\.-]+)+[\\w\\-\\._~:/?#[\\]@!\\$&'\\(\\)\\*\\+,;=.]+";
+
+			text = regex_replace(text, "(?<!\\!)\\[([\\w\\s]*?)]\\(("+URL+")\\)", "<a href=\"\\2\">\\1</a>");
+			text = regex_replace(text, "(?<!href=\")"+URL, "<a href=\"\\0\">\\0</a>");
+
+			text = regex_replace(text, "\\*\\*(.*?)\\*\\*", "<b>\\1</b>");
+			text = regex_replace(text, "\\*(.*?)\\*", "<i>\\1</i>");
+			text = regex_replace(text, "~~(.*?)~~", "<s>\\1</s>");
+			text = regex_replace(text, "`(.*?)`", "<tt>\\1</tt>");
+
+			text = regex_replace(text, "\\n# (.*?)\\n", "<big>\\1</big>");
+
+			lab.label = text;
+		}
+	});
+}
+
+string regex_replace(string text, string patt, string repl)
+{
+	return (new Regex(patt)).replace(text, text.length, 0, repl);
 }
