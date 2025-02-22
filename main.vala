@@ -472,18 +472,17 @@ namespace Lemmy.Desktop
 		[GtkChild] public unowned Gtk.Label body_label;
 		[GtkChild] public unowned Gtk.Box   media_hole;
 		public WebKit.WebView webview = new WebKit.WebView() { hexpand = true, vexpand = true };
-		internal string? media_url { get; set; }
 
 		public API.Handles.Post post { get; set; }
+
+		internal string? media_url { get; set; }
+		internal string body  { get; set; }
+		internal string title { get; set; }
 
 		construct {
 			media_hole.append(webview);
 			markupify_label(body_label);
 
-			deep_bind(
-				body_label, "label",
-				this, typeof(PostView), "post", typeof(API.Handles.Post), "body"
-			);
 			deep_bind(
 				this, "media-url",
 				this, typeof(PostView), "post", typeof(API.Handles.Post), "url"
@@ -504,6 +503,9 @@ namespace Lemmy.Desktop
 					notebook.page = media_tab.position;
 				else
 					notebook.page = text_tab.position;
+			});
+			notify["post"].connect(() => {
+				body_label.label = "# %s\n\n%s".printf(this.post.body, this.post.body); 
 			});
 		}
 	}
