@@ -31,6 +31,7 @@
 	(1,8,"GtkWidget","margin-end","12",None,None,None,None,None,None,None,None,None),
 	(1,8,"GtkWidget","margin-start","12",None,None,None,None,None,None,None,None,None),
 	(1,8,"GtkWidget","margin-top","12",None,None,None,None,None,None,None,None,None),
+	(1,9,"GtkLabel","selectable","True",None,None,None,None,None,None,None,None,None),
 	(1,9,"GtkLabel","wrap","True",None,None,None,None,None,None,None,None,None),
 	(1,9,"GtkWidget","halign","start",None,None,None,None,None,None,None,None,None),
 	(1,9,"GtkWidget","hexpand","True",None,None,None,None,None,None,None,None,None),

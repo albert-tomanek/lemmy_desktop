@@ -85,7 +85,6 @@ namespace Lemmy.Desktop
 		ListStore u_subscribed = new ListStore(typeof(Handles.Community));
 
 		construct {
-			this.load_css();
 			this.init_ui();
 			
 			this.bind_property("current-post", this.post_view, "post", BindingFlags.DEFAULT);
@@ -144,13 +143,6 @@ namespace Lemmy.Desktop
 				this.account = new AccountInfo.load(current_account);
 		}
 
-		void load_css()
-		{
-			var css_provider = new Gtk.CssProvider();
-			css_provider.load_from_resource("/com/github/alberttomanek/lemmy-desktop/style.css");
-			Gtk.StyleContext.add_provider_for_display (Gdk.Display.get_default(), css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION);
-		}
-
 		void init_ui()
 		{
 			// Fill holes
@@ -194,7 +186,8 @@ namespace Lemmy.Desktop
 						li.child = new Gtk.Label(null) {
 							halign = Gtk.Align.START,
 							hexpand = true,
-							ellipsize = Pango.EllipsizeMode.END
+							ellipsize = Pango.EllipsizeMode.END,
+							use_markup = true
 						};
 					},
 					null,
@@ -202,11 +195,8 @@ namespace Lemmy.Desktop
 						var lab  = (Gtk.Label) li.child;
 						var post = (Handles.Post) li.item;
 
-						lab.label = post.name;
+						lab.label = (post.featured_community) ? @"<b>$(post.name)</b>" : post.name;
 						lab.tooltip_text = post.name;
-
-						if (post.featured_community)
-							lab.parent.parent.add_css_class("pinned-post");
 					},
 					(@this, li) => {
 						var lab  = (Gtk.Label) li.child;
@@ -253,33 +243,7 @@ namespace Lemmy.Desktop
 				c.show();
 			});
 
-			// comms_list
-
-			this.comm_selection.model = this.u_subscribed;
-			this.comm_selection.notify["selected-item"].connect(() => {
-				var grp = this.comm_selection.selected_item as Handles.Community;
-
-				var gi = new GroupIter(session, grp.instance, grp.name);
-				gi.get_more_posts.begin((a, b) => on_more_posts_gotten(a, b, gi));
-
-				posts_selection.model = gi;
-			});
-
-			this.comms_list.factory = new_signal_list_item_factory(
-				(@this, li) => {
-					li.child = new CommunityListRow();
-				},
-				null,
-				(@this, li) => {
-					var comm = ((Handles.Community) li.item);
-					var row  = ((CommunityListRow) li.child);
-
-					row.name.label = comm.title;
-					row.tooltip_text = (comm.description != null) ? (comm.description.length <= 300) ? comm.description : null : null;
-					row.set_icon.begin(comm.icon);
-				},
-				null
-			);
+			this.init_comms_list();
 		}
 
 		void on_more_posts_gotten(Object? _, AsyncResult async_ctx, GroupIter gi)
@@ -290,6 +254,141 @@ namespace Lemmy.Desktop
 			stdout.printf("======== %d %d %d\n", this.posts_list.get_height(), this.posts_scrolledwindow.get_height(), n_loaded);
 			if (this.posts_list.get_height() < this.posts_scrolledwindow.get_height() && n_loaded > 0)	// (The n_loaded check is to stop this loop in case the community has fewer posts than fit on the screen)
 				gi.get_more_posts.begin((a, b) => on_more_posts_gotten(a, b, gi));
+		}
+
+		void init_comms_list()
+		{
+			// https://stackoverflow.com/a/75047830/6130358
+
+			var root = new ListStore(typeof(SpecialComm));
+
+			root.append(new SpecialComm.with_children({
+				new SpecialComm() {
+					name = "My posts",
+				},
+				new SpecialComm() {
+					name = "Saved",
+				},
+				new SpecialComm() {
+					name = "Subscribed",
+					comm_id = "subscribed",
+					children = this.u_subscribed
+				}
+			}) {
+				name = "User"
+			});
+
+			this.comm_selection.model = new Gtk.TreeListModel(root, false, true, item => (item as SpecialComm)?.children);
+
+			//  this.comm_selection.notify["selected-item"].connect(() => {
+			//  	var grp = this.comm_selection.selected_item as Handles.Community;
+
+			//  	var gi = new GroupIter(session, grp.instance, grp.name);
+			//  	gi.get_more_posts.begin((a, b) => on_more_posts_gotten(a, b, gi));
+
+			//  	posts_selection.model = gi;
+			//  });
+
+			this.comms_list.factory = new_signal_list_item_factory(
+				(@this, li) => {
+					li.child = new Gtk.TreeExpander() {
+						child = new CommListRow()
+					};
+					li.focusable = false;
+				},
+				null,
+				(@this, li) => {
+					//  stdout.printf("%s %s\n", li.get_type().name(), li.item.get_type().name());
+					var row  = li.item as Gtk.TreeListRow;
+					var expander = li.child as Gtk.TreeExpander;
+					var widget = expander.child as CommListRow;
+
+					expander.set_list_row(row);		// Binds the expander arrow to this TreeListRow
+
+					//  if (row.get_parent()?.item == u_subscribed)	// If this is an item within the "subscribed" list
+					if (row.item is Handles.Community)
+					{
+						var comm = row.item as Handles.Community;
+
+						widget.name.label = comm.title;
+						widget.tooltip_text = (comm.description != null) ? (comm.description.length <= 300) ? comm.description : null : null;
+						widget.set_icon.begin(comm.icon);
+					}
+					else if (row.item is SpecialComm)
+					{
+						var spec = row.item as SpecialComm;
+
+						widget.name.label = spec.name;
+						li.selectable = (spec.comm_id != null);
+					}
+				},
+				null
+			);
+		}
+
+		class SpecialComm : Object
+		{
+			public string  name { get; set; }
+			public string? comm_id { get; set; default = null; }		// If this is specified, the row itself will be selectable, whereupon it will trigger the action `display-special-comm` with this as the name argument.
+			public ListModel? children { get; set; default = null; }
+
+			public SpecialComm.with_children(SpecialComm[] items)
+			requires(items.length > 0)
+			{
+				var list = new ListStore(items[0].get_type());
+
+				foreach (var item in items)
+					list.append(item);
+
+				Object(children: list);
+			}
+
+			public SpecialComm()
+			{
+				Object();
+			}
+
+			public void add_child(Object child)
+			{
+				if (this.children == null)
+					this.children = new ListStore(child.get_type());
+
+				(this.children as ListStore).append(child);
+			}
+		}
+
+		class CommListRow : Gtk.Box
+		{
+			public Gtk.Label name = new Gtk.Label(null) {
+				halign = Gtk.Align.START,
+				hexpand = true,
+				ellipsize = Pango.EllipsizeMode.END
+			};
+			public Gtk.Image icon = new Gtk.Image() {
+				width_request = 16,
+				height_request = 16
+			};
+
+			construct {
+				orientation = Gtk.Orientation.HORIZONTAL;
+				spacing = 4;
+
+				this.append(icon);
+				this.append(name);
+			}
+
+			public async void set_icon(string? url)
+			{
+				if (url != null)
+				{
+					this.icon.opacity = 1.0;
+
+					var bytes = yield (new Soup.Session()).send_and_read_async(new Soup.Message ("GET", url), 0, null);
+					this.icon.gicon = new GLib.BytesIcon(bytes);
+				}
+				else
+					this.icon.opacity = 0.0;
+			}
 		}
 
 		void init_actions()
@@ -388,40 +487,6 @@ namespace Lemmy.Desktop
 			});
 		}
 
-		class CommunityListRow : Gtk.Box
-		{
-			public Gtk.Label name = new Gtk.Label(null) {
-				halign = Gtk.Align.START,
-				hexpand = true,
-				ellipsize = Pango.EllipsizeMode.END
-			};
-			public Gtk.Image icon = new Gtk.Image() {
-				width_request = 16,
-				height_request = 16
-			};
-
-			construct {
-				orientation = Gtk.Orientation.HORIZONTAL;
-				spacing = 4;
-
-				this.append(icon);
-				this.append(name);
-			}
-
-			public async void set_icon(string? url)
-			{
-				if (url != null)
-				{
-					this.icon.opacity = 1.0;
-
-					var bytes = yield (new Soup.Session()).send_and_read_async(new Soup.Message ("GET", url), 0, null);
-					this.icon.gicon = new GLib.BytesIcon(bytes);
-				}
-				else
-					this.icon.opacity = 0.0;
-			}
-		}
-
 		void on_new_login()
 		{
 			this.u_subscribed.remove_all();
@@ -505,7 +570,7 @@ namespace Lemmy.Desktop
 					notebook.page = text_tab.position;
 			});
 			notify["post"].connect(() => {
-				body_label.label = "# %s\n\n%s".printf(this.post.body, this.post.body); 
+				body_label.label = "# %s\n\n%s".printf(this.post.name, this.post.body ?? ""); 
 			});
 		}
 	}
@@ -613,7 +678,7 @@ void markupify_label(Gtk.Label lab)
 			text = regex_replace(text, "~~(.*?)~~", "<s>\\1</s>");
 			text = regex_replace(text, "`(.*?)`", "<tt>\\1</tt>");
 
-			text = regex_replace(text, "\\n# (.*?)\\n", "<big>\\1</big>");
+			text = regex_replace(text, "(?<=^|\\n)# (.*?)(?=\\n)", "<big><b>\\1</b></big>");
 
 			lab.label = text;
 		}
