@@ -205,7 +205,7 @@ namespace Lemmy.Desktop
 
                 text = regex_replace(text, "\\*\\*(.*?)\\*\\*", "<b>\\1</b>");
                 text = regex_replace(text, "\\*(.*?)\\*", "<i>\\1</i>");
-                text = regex_replace(text, "(?:\s)_(\\w.*?\\w)_(?:\s)", "<i>\\1</i>");
+                text = regex_replace(text, "(?:\\s)_(\\w.*?\\w)_(?:\\s)", "<i>\\1</i>");
                 text = regex_replace(text, "~~(\\w.*?\\w)~~", "<s>\\1</s>");
                 text = regex_replace(text, "`(.*?)`", "<tt>\\1</tt>");
 
