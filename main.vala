@@ -384,9 +384,7 @@ namespace Lemmy.Desktop
 				if (url != null)
 				{
 					this.icon.opacity = 1.0;
-
-					var bytes = yield (new Soup.Session()).send_and_read_async(new Soup.Message ("GET", url), 0, null);
-					this.icon.gicon = new GLib.BytesIcon(bytes);
+					yield set_image_to_url(this.icon, url);
 				}
 				else
 					this.icon.opacity = 0.0;
@@ -536,8 +534,10 @@ namespace Lemmy.Desktop
 		[GtkChild] public unowned Gtk.NotebookPage text_tab;
 		[GtkChild] public unowned Gtk.NotebookPage media_tab;
 
-		[GtkChild] public unowned Gtk.Label body_label;
-		[GtkChild] public unowned Gtk.Box   media_hole;
+		[GtkChild] public unowned Gtk.Box  text_hole;
+		[GtkChild] public unowned Gtk.Box  media_hole;
+
+		MarkdownLabel md_label = new MarkdownLabel() { selectable = true };
 		public WebKit.WebView webview = new WebKit.WebView() { hexpand = true, vexpand = true };
 
 		public API.Structs.Post post { get; set; }
@@ -548,7 +548,7 @@ namespace Lemmy.Desktop
 
 		construct {
 			media_hole.append(webview);
-			markupify_label(body_label);
+			text_hole.append(md_label);
 
 			deep_bind(
 				this, "media-url",
@@ -572,122 +572,8 @@ namespace Lemmy.Desktop
 					notebook.page = text_tab.position;
 			});
 			notify["post"].connect(() => {
-				body_label.label = "# %s\n\n%s".printf(this.post.post.name, this.post.post.body ?? ""); 
+				md_label.text = "# %s\n\n%s".printf(this.post.post.name, this.post.post.body ?? ""); 
 			});
 		}
 	}
-}
-
-
-unowned Gtk.ExpressionWatch deep_bind(Object tgt_obj, string tgt_prop, Object src_obj, ...)
-{
-	// Equivalent:
-	//
-	//  var post_text = new Gtk.PropertyExpression(typeof(API.Handles.Post),
-	//  	new Gtk.PropertyExpression(typeof(PostView), null, "post"),
-	//  "body");
-	//  post_text.bind(body_label, "label", this);
-	//
-	//  deep_bind(
-	//  	body_label, "label",
-	//  	this, typeof(PostView), "post", typeof(API.Handles.Post), "body"
-	//  );
-
-	string[] props = {};
-	Type[]   types = {};
-
-	// 1. extract the va_args
-	for (var l = va_list(); true;)
-	{
-		Type type = l.arg();
-		if (type == 0) break;
-		types += type;
-
-		string prop = l.arg();
-		props += prop;
-	}
-
-	// 2. Construct the nested expression
-	Gtk.Expression? exp = null;
-	for (int i = 0; i < props.length; i++)
-	{
-		exp = new Gtk.PropertyExpression(types[i], exp, props[i]);
-	}
-
-	if (exp != null)
-		return exp.bind(tgt_obj, tgt_prop, src_obj);
-	else
-		return null;
-}
-
-delegate void SignalListItemFactoryCallback(Gtk.SignalListItemFactory @this, Gtk.ListItem li);
-
-Gtk.SignalListItemFactory new_signal_list_item_factory(
-    SignalListItemFactoryCallback? setup,
-    SignalListItemFactoryCallback? teardown,
-    SignalListItemFactoryCallback? bind,
-    SignalListItemFactoryCallback? unbind
-)
-{
-    var f = new Gtk.SignalListItemFactory();
-
-    if (setup    != null) f.setup.connect((t, li) => setup(f, (Gtk.ListItem) li));      // FIXME: We get passed Objects, not ListItems so this cast might be ignoring some aspect of reaity
-    if (teardown != null) f.teardown.connect((t, li) => teardown(f, (Gtk.ListItem) li));
-    if (bind     != null) f.bind.connect((t, li) => bind(f, (Gtk.ListItem) li));
-    if (unbind   != null) f.unbind.connect((t, li) => unbind(f, (Gtk.ListItem) li));
-
-    return f;
-}
-
-void errbox (Gtk.Window parent, string title, string text)
-{
-	var d2 = new Gtk.MessageDialog(parent, Gtk.DialogFlags.MODAL, Gtk.MessageType.ERROR, Gtk.ButtonsType.OK, null) {
-		text = title,
-		secondary_text = text,
-	};
-	d2.response.connect(_ => d2.close());
-	d2.show();
-}
-
-void markupify_label(Gtk.Label lab)
-{
-	lab.use_markup = true;
-
-	lab.set_data<bool>("ignore-text-change", false);
-	lab.notify["label"].connect(() => {
-		if (lab.get_data<bool>("ignore-text-change"))
-		{
-			// `::notify` triggered by this callback
-			lab.set_data<bool>("ignore-text-change", false);
-		}
-		else
-		{
-			lab.set_data<bool>("ignore-text-change", true);
-
-			string text = lab.label;
-
-			// https://docs.gtk.org/Pango/pango_markup.html
-			// https://docs.gtk.org/gtk4/class.Label.html#markup-styled-text
-			// https://join-lemmy.org/docs/users/02-media.html
-
-			string URL = "http(s)?:\\/\\/?[\\w.-]+(?:\\.[\\w\\.-]+)+[\\w\\-\\._~:/?#[\\]@!\\$&'\\(\\)\\*\\+,;=.]+";
-
-			text = regex_replace(text, "(?<!\\!)\\[([\\w\\s]*?)]\\(("+URL+")\\)", "<a href=\"\\2\">\\1</a>");
-			text = regex_replace(text, "(?<!href=\")"+URL, "<a href=\"\\0\">\\0</a>");
-
-			text = regex_replace(text, "\\*\\*(.*?)\\*\\*", "<b>\\1</b>");
-			text = regex_replace(text, "\\*(.*?)\\*", "<i>\\1</i>");
-			text = regex_replace(text, "~~(.*?)~~", "<s>\\1</s>");
-			text = regex_replace(text, "`(.*?)`", "<tt>\\1</tt>");
-
-			text = regex_replace(text, "(?<=^|\\n)# (.*?)(?=\\n)", "<big><b>\\1</b></big>");
-
-			lab.label = text;
-		}
-	});
-}
-
-string regex_replace(string text, string patt, string repl)
-{
-	return (new Regex(patt)).replace(text, text.length, 0, repl);
 }

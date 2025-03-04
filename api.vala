@@ -137,6 +137,7 @@ namespace Lemmy.API
     class Comment : ListModel, Object
     {
         weak Comment? parent = null;
+        public bool is_root { get { return parent == null; } }
 
         ListStore            replies = new ListStore(typeof(Comment));
         Gtk.SortListModel    replies_sorted;
@@ -180,7 +181,10 @@ namespace Lemmy.API
 
         public Object? get_item (uint idx) 
         {
-            return (idx == 0) ? this : flat.get_item(idx - 1);
+            if (this.is_root)
+                return flat.get_item(idx);  // The root comment is actually empty so just pass through the children
+            else
+                return (idx == 0) ? this : flat.get_item(idx - 1);
         }
 
         public Type get_item_type()
@@ -190,7 +194,10 @@ namespace Lemmy.API
 
         public uint get_n_items()
         {
-            return flat.get_n_items() + 1;
+            if (this.is_root)
+                return flat.get_n_items();
+            else
+                return flat.get_n_items() + 1;
         }
 
         //

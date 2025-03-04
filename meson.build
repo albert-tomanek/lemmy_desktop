@@ -12,6 +12,7 @@ executable('lemmy_desktop',
 	sources: [
 		'main.vala',
 		'comments.vala',
+		'misc.vala',
 		'api.vala',
 	],
 	dependencies: [

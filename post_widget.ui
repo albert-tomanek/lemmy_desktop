@@ -15,25 +15,12 @@
             <property name="child">
               <object class="GtkScrolledWindow">
                 <child>
-                  <object class="GtkBox">
+                  <object class="GtkBox" id="text_hole">
                     <property name="css-classes">card</property>
                     <property name="margin-bottom">12</property>
                     <property name="margin-end">12</property>
                     <property name="margin-start">12</property>
                     <property name="margin-top">12</property>
-                    <child>
-                      <object class="GtkLabel" id="body_label">
-                        <property name="halign">start</property>
-                        <property name="hexpand">True</property>
-                        <property name="margin-bottom">12</property>
-                        <property name="margin-end">12</property>
-                        <property name="margin-start">12</property>
-                        <property name="margin-top">12</property>
-                        <property name="selectable">True</property>
-                        <property name="valign">start</property>
-                        <property name="wrap">True</property>
-                      </object>
-                    </child>
                   </object>
                 </child>
               </object>
