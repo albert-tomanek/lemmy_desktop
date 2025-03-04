@@ -20,6 +20,7 @@ namespace Lemmy.API
         msg.set_request_body_from_bytes("application/json", new Bytes (body.data));
 
         var response = yield soup.send_and_read_async(msg, 0, null);
+        stdout.printf("%s\n", (string) response.get_data().copy());
         var? token = json_get("$.jwt", (string) response.get_data().copy()).get_string();
 
         if (token != null)
@@ -79,12 +80,12 @@ namespace Lemmy.API
             yield fetch_all_paged(@"https://$(inst)/api/v3/community/list?type_=Subscribed", "$.communities..community", typeof(Handles.Community), list);
         }
 
-        public async void get_comments(Handles.Post post, Comment root) throws Error
+        public async void get_comments(Structs.Post post, Comment root) throws Error
         {
             // This is a list where comments are temporarily stored while the API page with their parents hasn't been received yet. Eventually, all comments from this list should get removed from this list and inserted somewhere into the tree under `root`.
             var comments_flat = new ListStore(typeof(Structs.Comment));
 
-            yield fetch_all_paged(@"https://$(inst)/api/v3/comment/list?post_id=$(post.id)", "$.comments[*]", typeof(Structs.Comment), comments_flat, () => {
+            yield fetch_all_paged(@"https://$(inst)/api/v3/comment/list?post_id=$(post.post.id)", "$.comments[*]", typeof(Structs.Comment), comments_flat, () => {
             });
 
             do {
@@ -106,25 +107,30 @@ namespace Lemmy.API
             } while (comments_flat.get_n_items() > 0);
         }
 
-        private async void fetch_all_paged(string url, string json_path, Type item_type, ListStore dest, SourceOnceFunc? new_page_cb = null) throws Error
+        internal async void fetch_all_paged(string url, string json_path, Type item_type, ListStore dest, SourceOnceFunc? new_page_cb = null) throws Error
         {
             //  stdout.printf("A %d %d\n", (int) list.get_n_items(), (int) (-1 < (int) list.get_n_items()));
             for (int old_length = -1, page = 1; old_length < (int) dest.get_n_items(); page++) // We stop iterating once the pages (ie. additions) have size 0.
             {
                 old_length = (int) dest.get_n_items();
 
-                var request = new Soup.Message ("GET", url + ("?" in url ? "&" : "?") + @"page=$(page)");
-                var bytes = yield soup.send_and_read_async(request, 0, null);
-
-                var nodes = Json.Path.query(json_path, Json.from_string((string) bytes.get_data())).get_array();
-                nodes.foreach_element((arr, i, node) => {
-                    var c = Json.gobject_deserialize(item_type, node);
-                    dest.append(c);
-                });
+                yield this.fetch_page(url, json_path, item_type, dest, page);
 
                 if (new_page_cb != null)
                     new_page_cb();
             }
+        }
+
+        internal async void fetch_page(string url, string json_path, Type item_type, ListStore dest, uint page) throws Error
+        {
+            var request = new Soup.Message ("GET", url + ("?" in url ? "&" : "?") + @"page=$(page)");
+            var bytes = yield soup.send_and_read_async(request, 0, null);
+
+            var nodes = Json.Path.query(json_path, Json.from_string((string) bytes.get_data())).get_array();
+            nodes.foreach_element((arr, i, node) => {
+                var c = Json.gobject_deserialize(item_type, node);
+                dest.append(c);
+            });
         }
     }
 
@@ -233,80 +239,59 @@ namespace Lemmy.API
         }
     }
 
-    class GroupIter: GLib.ListModel, Object
+    class SubmissionIter: GLib.ListModel, Object
     {
-        public string inst;
-        public string comm;
+        // For https://lemmy.readme.io/reference/get_post-list
 
         API.Session sess;
 
-        GenericArray<Handles.Post> posts = new GenericArray<Handles.Post>();
-        string? next_page = null;
+        string url;
+        string json_path;
 
-        public GroupIter(API.Session sess, string inst, string comm)
+        ListStore submissions;
+        uint page = 1;
+
+        public SubmissionIter.group(API.Session sess, string comm_inst, string comm)
         {
             this.sess = sess;
-            this.inst = inst;
-            this.comm = comm;
+            this.url = @"https://$(sess.inst)/api/v3/post/list?community_name=$(comm)@$(comm_inst)";
+            this.json_path = "$.posts[*]";
+            this.submissions = new ListStore(typeof(Structs.Post));
         }
 
-        public async int get_more_posts()
+        public SubmissionIter.on_url(API.Session sess, string url, string json_path, Type type)
         {
-            var _old_length = get_n_items();
+            this.sess = sess;
+            this.url = url;
+            this.json_path = json_path;
+            this.submissions = new ListStore(type);
+        }
 
-            var msg = new Soup.Message ("GET", @"https://$(inst)/api/v3/post/list?community_name=$(comm)" + (next_page != null ? "&page_cursor=" + next_page : ""));
-            var bytes = yield sess.soup.send_and_read_async(msg, 0, null);
+        public async uint get_more_posts()
+        {
+            var old_length = get_n_items();
 
-            //
+            yield this.sess.fetch_page(this.url, this.json_path, this.submissions.get_item_type(), this.submissions, this.page++);
 
-            var pa = new Json.Parser();
-            stdout.printf((string) bytes.get_data());
-            pa.load_from_data((string) bytes.get_data(), bytes.length);
-            var r  = new Json.Reader(pa.get_root());
-
-            r.read_member("next_page");
-            this.next_page = r.get_string_value();
-            r.end_member();
-
-            r.read_member("posts");
-            var n_items = r.count_elements();
-            for (int i = 0; i < n_items; i++)
-            {
-                Handles.Post post = Json.gobject_deserialize(
-                    typeof(Handles.Post),
-                    Json.Path.query("$.posts[%d].post".printf(i), pa.get_root())
-                        .get_array().get_element(0)
-                ) as Handles.Post;
-
-                post.creator = Json.gobject_deserialize(
-                    typeof(Handles.User),
-                    Json.Path.query("$.posts[%d].creator".printf(i), pa.get_root())
-                        .get_array().get_element(0)
-                ) as Handles.User;
-
-                posts.add(post);
-            }
-            r.end_member();
-
-            this.items_changed(_old_length, 0, n_items);
-            return n_items;
+            this.items_changed(old_length, 0, get_n_items() - old_length);
+            return get_n_items() - old_length;
         }
 
         // ListModel
 
         public Type get_item_type()
         {
-            return typeof(Handles.Post);
+            return submissions.get_item_type();
         }
 
         public uint get_n_items ()
         {
-            return this.posts.length;
+            return submissions.get_n_items();
         }
 
         public Object? get_item (uint i)
         {
-            return (i < get_n_items()) ? this.posts[i] : null;
+            return submissions.get_item(i);
         }
     }
 
@@ -319,29 +304,6 @@ namespace Lemmy.API
     }
 
     // JSON objects
-
-    public class Handles.Post : Object, Json.Serializable   // https://stackoverflow.com/a/58461239/6130358
-    {
-        public int id { get; set; }
-        public string name { get; set; }
-        public string? url { get; set; default = null; }
-        public string? body { get; set; default = null; }
-        public bool locked { get; set; }
-        public string ap_id { get; set; }
-        public bool featured_community { get; set; }
-
-        public Handles.User creator;
-
-        // Need parsing
-        public string published { get; set; }
-
-        //  public Post get_post(Session sess)
-    }
-
-    public class Handles.User : Object, Json.Serializable
-    {
-        public string name { get; set; }
-    }
 
     public class Handles.Community : Object, Json.Serializable
     {
@@ -360,24 +322,13 @@ namespace Lemmy.API
         }
     }
 
-    public class Structs.Comment : Object, Json.Serializable
+    public class Structs.UserSubmission : Object, Json.Serializable
     {
-        public class Comment : Object, Json.Serializable
-        {
-            public int id { get; set; }
-            public string content { get; set; }
-            public string published { get; set; }   // ISO date
-            public bool   deleted { get; set; }
-            public string path { get; set; }
-
-            public string ap_id { get; set; }
-        }
-        public Comment comment { get; set; }
-
         public class Creator : Object, Json.Serializable
         {
             public string actor_id { get; set; }
             public string name { get; set; }
+            public string? avatar { get; set; default = null; }
         }
         public Creator creator { get; set; }
 
@@ -388,6 +339,39 @@ namespace Lemmy.API
             public int downvotes { get; set; }
         }
         public Counts counts { get; set; }
+    }
+
+    public class Structs.Post : Structs.UserSubmission, Json.Serializable
+    {
+        public class PostField : Object, Json.Serializable   // https://stackoverflow.com/a/58461239/6130358
+        {
+            public int id { get; set; }
+            public string name { get; set; }
+            public string? url { get; set; default = null; }
+            public string? body { get; set; default = null; }
+            public bool locked { get; set; }
+            public string ap_id { get; set; }
+            public bool featured_community { get; set; }
+    
+            // Need parsing
+            public string published { get; set; }
+        }
+        public PostField post { get; set; }
+    }
+
+    public class Structs.Comment : Structs.UserSubmission, Json.Serializable
+    {
+        public class CommentField : Object, Json.Serializable
+        {
+            public int id { get; set; }
+            public string content { get; set; }
+            public string published { get; set; }   // ISO date
+            public bool   deleted { get; set; }
+            public string path { get; set; }
+
+            public string ap_id { get; set; }
+        }
+        public CommentField comment { get; set; }
 
         public uint[] parent_path {
             owned get {

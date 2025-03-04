@@ -24,8 +24,21 @@
 	(1,18,"(item)",None,16,None,None,None,-1,None,None),
 	(1,19,"(section)",None,11,None,None,None,-1,None,None),
 	(1,20,"(item)",None,19,None,None,None,-1,None,None),
-	(1,21,"(item)",None,10,None,None,None,-1,None,None),
-	(1,22,"(item)",None,10,None,None,None,-1,None,None)
+	(1,23,"(menu)","comment_menu",None,None,None,None,-1,None,None),
+	(1,29,"(section)",None,23,None,None,None,3,None,None),
+	(1,30,"(item)",None,29,None,None,None,None,None,None),
+	(1,31,"(item)",None,29,None,None,None,1,None,None),
+	(1,32,"(submenu)",None,23,None,None,None,3,None,None),
+	(1,33,"(item)",None,32,None,None,None,None,None,None),
+	(1,34,"(item)",None,32,None,None,None,1,None,None),
+	(1,36,"(item)",None,23,None,None,None,3,None,None),
+	(1,37,"(section)",None,10,None,None,None,None,None,None),
+	(1,38,"(section)",None,10,None,None,None,3,None,None),
+	(1,39,"(item)",None,37,None,None,None,None,None,None),
+	(1,40,"(item)",None,37,None,None,None,1,None,None),
+	(1,41,"(item)",None,38,None,None,None,-1,None,None),
+	(1,42,"(item)",None,29,None,None,None,2,None,None),
+	(1,43,"(item)",None,23,None,None,None,-1,None,None)
   </object>
   <object_property>
 	(1,2,"(submenu)","label","_Menu",None,None,None,None,None,None,None,None,None),
@@ -53,7 +66,18 @@
 	(1,18,"(item)","label","_Save as...",None,None,None,None,None,None,None,None,None),
 	(1,20,"(item)","action","win.copy-post-url",None,None,None,None,None,None,None,None,None),
 	(1,20,"(item)","label","Copy _URL",None,None,None,None,None,None,None,None,None),
-	(1,21,"(item)","label","_Block",None,None,None,None,None,None,None,None,None),
-	(1,22,"(item)","label","_Subscribe",None,None,None,None,None,None,None,None,None)
+	(1,30,"(item)","label","_Upvote",None,None,None,None,None,None,None,None,None),
+	(1,31,"(item)","label","_Downvote",None,None,None,None,None,None,None,None,None),
+	(1,32,"(submenu)","label","_User",None,None,None,None,None,None,None,None,None),
+	(1,33,"(item)","label","Block",None,None,None,None,None,None,None,None,None),
+	(1,34,"(item)","label","Send message...",None,None,None,None,None,None,None,None,None),
+	(1,36,"(item)","label","Copy _URL",None,None,None,None,None,None,None,None,None),
+	(1,39,"(item)","action","win.block-comm",None,None,None,None,None,None,None,None,None),
+	(1,39,"(item)","label","_Block",None,None,None,None,None,None,None,None,None),
+	(1,40,"(item)","action","win.subscribe-comm",None,None,None,None,None,None,None,None,None),
+	(1,40,"(item)","label","_Subscribe",None,None,None,None,None,None,None,None,None),
+	(1,41,"(item)","label","_Create post...",None,None,None,None,None,None,None,None,None),
+	(1,42,"(item)","label","Save",None,None,None,None,None,None,None,None,None),
+	(1,43,"(item)","label","_Copy text",None,None,None,None,None,None,None,None,None)
   </object_property>
 </cambalache-project>

@@ -79,7 +79,7 @@ namespace Lemmy.Desktop
 		internal API.Session? session { get; set; default = null; }		// This is obtained by logging in and used to communicate with the API
 
 		// View state
-		public API.Handles.Post current_post { get; set; }
+		public API.Structs.Post current_post { get; set; }
 		//  public Community current_comm { get; set; }
 
 		ListStore u_subscribed = new ListStore(typeof(Handles.Community));
@@ -193,15 +193,12 @@ namespace Lemmy.Desktop
 					null,
 					(@this, li) => {
 						var lab  = (Gtk.Label) li.child;
-						var post = (Handles.Post) li.item;
+						var post = (Structs.Post) li.item;
 
-						lab.label = (post.featured_community) ? @"<b>$(post.name)</b>" : post.name;
-						lab.tooltip_text = post.name;
+						lab.label = (post.post.featured_community) ? @"<b>$(post.post.name)</b>" : post.post.name;
+						lab.tooltip_text = post.post.name;
 					},
-					(@this, li) => {
-						var lab  = (Gtk.Label) li.child;
-						lab.parent.parent.remove_css_class("pinned-post");
-					}
+					null
 				)
 			});
 
@@ -221,7 +218,7 @@ namespace Lemmy.Desktop
 					},
 					null,
 					(@this, li) => {
-						((Gtk.Label) li.child).label = ((Handles.Post) li.item).creator.name;
+						((Gtk.Label) li.child).label = ((Structs.Post) li.item).creator.name;
 					},
 					null
 				)
@@ -230,15 +227,15 @@ namespace Lemmy.Desktop
 			this.posts_scrolledwindow.edge_reached.connect((pos) => {
 				if (this.posts_selection.model != null)
 					if (pos == Gtk.PositionType.BOTTOM)
-						(this.posts_selection.model as GroupIter).get_more_posts.begin();
+						(this.posts_selection.model as SubmissionIter).get_more_posts.begin();
 			});
 
 			this.posts_selection.notify["selected-item"].connect(() => {
-				this.current_post = this.posts_selection.selected_item as Handles.Post;
+				this.current_post = this.posts_selection.selected_item as Structs.Post;
 			});
 
 			this.posts_list.activate.connect(idx => {
-				var post = this.posts_list.model.get_item(idx) as Handles.Post;
+				var post = this.posts_list.model.get_item(idx) as Structs.Post;
 				var c = new CommentsWindow(this, this.session, post);
 				c.show();
 			});
@@ -246,12 +243,12 @@ namespace Lemmy.Desktop
 			this.init_comms_list();
 		}
 
-		void on_more_posts_gotten(Object? _, AsyncResult async_ctx, GroupIter gi)
+		void on_more_posts_gotten(Object? _, AsyncResult async_ctx, SubmissionIter gi)
 		{
 			// This is called at the end of the async function loading posts, and it keeps calling it again until the screen is full.
-			int n_loaded = gi.get_more_posts.end(async_ctx);
+			uint n_loaded = gi.get_more_posts.end(async_ctx);
 
-			stdout.printf("======== %d %d %d\n", this.posts_list.get_height(), this.posts_scrolledwindow.get_height(), n_loaded);
+			//  stdout.printf("======== %d %d %d\n", this.posts_list.get_height(), this.posts_scrolledwindow.get_height(), n_loaded);
 			if (this.posts_list.get_height() < this.posts_scrolledwindow.get_height() && n_loaded > 0)	// (The n_loaded check is to stop this loop in case the community has fewer posts than fit on the screen)
 				gi.get_more_posts.begin((a, b) => on_more_posts_gotten(a, b, gi));
 		}
@@ -265,13 +262,14 @@ namespace Lemmy.Desktop
 			root.append(new SpecialComm.with_children({
 				new SpecialComm() {
 					name = "My posts",
+					special_id = "my-posts",
 				},
 				new SpecialComm() {
 					name = "Saved",
 				},
 				new SpecialComm() {
 					name = "Subscribed",
-					comm_id = "subscribed",
+					special_id = "subscribed",
 					children = this.u_subscribed
 				}
 			}) {
@@ -280,14 +278,31 @@ namespace Lemmy.Desktop
 
 			this.comm_selection.model = new Gtk.TreeListModel(root, false, true, item => (item as SpecialComm)?.children);
 
-			//  this.comm_selection.notify["selected-item"].connect(() => {
-			//  	var grp = this.comm_selection.selected_item as Handles.Community;
+			this.comm_selection.notify["selected-item"].connect(() => {
+				Object item = ((Gtk.TreeListRow) this.comm_selection.selected_item).item;
+				SubmissionIter gi;
 
-			//  	var gi = new GroupIter(session, grp.instance, grp.name);
-			//  	gi.get_more_posts.begin((a, b) => on_more_posts_gotten(a, b, gi));
+				if (item is Handles.Community)
+				{
+					var grp = item as Handles.Community;
+					gi = new SubmissionIter.group(session, grp.instance, grp.name);
+				}
+				else if (item is SpecialComm)
+				{
+					var sc = item as SpecialComm;
+					if (sc.special_id == "subscribed")
+						gi = new SubmissionIter.on_url(session, @"https://$(session.inst)/api/v3/post/list?type_=Subscribed", "$.posts[*]", typeof(API.Structs.Post));
+					if (sc.special_id == "my-posts")
+						gi = new SubmissionIter.on_url(session, @"https://$(session.inst)/api/v3/user?username=$(session.uname)", "$.posts[*]", typeof(API.Structs.Post));
+					else
+						return;
+				}
+				else
+					return;
 
-			//  	posts_selection.model = gi;
-			//  });
+				gi.get_more_posts.begin((a, b) => on_more_posts_gotten(a, b, gi));
+				posts_selection.model = gi;
+			});
 
 			this.comms_list.factory = new_signal_list_item_factory(
 				(@this, li) => {
@@ -319,7 +334,7 @@ namespace Lemmy.Desktop
 						var spec = row.item as SpecialComm;
 
 						widget.name.label = spec.name;
-						li.selectable = (spec.comm_id != null);
+						li.selectable = (spec.special_id != null);
 					}
 				},
 				null
@@ -329,7 +344,7 @@ namespace Lemmy.Desktop
 		class SpecialComm : Object
 		{
 			public string  name { get; set; }
-			public string? comm_id { get; set; default = null; }		// If this is specified, the row itself will be selectable, whereupon it will trigger the action `display-special-comm` with this as the name argument.
+			public string? special_id { get; set; default = null; }		// If this is specified, the row itself will be selectable, whereupon it will trigger the action `display-special-comm` with this as the name argument.
 			public ListModel? children { get; set; default = null; }
 
 			public SpecialComm.with_children(SpecialComm[] items)
@@ -341,19 +356,6 @@ namespace Lemmy.Desktop
 					list.append(item);
 
 				Object(children: list);
-			}
-
-			public SpecialComm()
-			{
-				Object();
-			}
-
-			public void add_child(Object child)
-			{
-				if (this.children == null)
-					this.children = new ListStore(child.get_type());
-
-				(this.children as ListStore).append(child);
 			}
 		}
 
@@ -424,14 +426,14 @@ namespace Lemmy.Desktop
 					});
 				}, null, null, null},
 				{"remove-account", () => {
-					this.account = null;
-
 					// Filter out of array
 					string[] ids = {};
 					foreach (var id in this.account_ids)
 						if (id != this.account.internal_id)
 							ids += id;
 					this.account_ids = ids;
+
+					this.account = null;
 				}, null, null, null}
 			}, this);
 
@@ -441,7 +443,7 @@ namespace Lemmy.Desktop
 					if (this.current_post != null)
 					{
 						Gdk.Display.get_default().get_clipboard().set_text(
-							this.current_post.ap_id
+							this.current_post.post.ap_id
 						);
 					}
 				}, null, null, null}
@@ -538,7 +540,7 @@ namespace Lemmy.Desktop
 		[GtkChild] public unowned Gtk.Box   media_hole;
 		public WebKit.WebView webview = new WebKit.WebView() { hexpand = true, vexpand = true };
 
-		public API.Handles.Post post { get; set; }
+		public API.Structs.Post post { get; set; }
 
 		internal string? media_url { get; set; }
 		internal string body  { get; set; }
@@ -550,7 +552,7 @@ namespace Lemmy.Desktop
 
 			deep_bind(
 				this, "media-url",
-				this, typeof(PostView), "post", typeof(API.Handles.Post), "url"
+				this, typeof(PostView), "post", typeof(API.Structs.Post), "post", typeof(API.Structs.Post.PostField), "url"
 			);
 			notify["media-url"].connect(() => {
 				if (media_url != null)
@@ -564,13 +566,13 @@ namespace Lemmy.Desktop
 			});
 
 			notify["post"].connect(() => {
-				if (post.url != null)
+				if (post.post.url != null)
 					notebook.page = media_tab.position;
 				else
 					notebook.page = text_tab.position;
 			});
 			notify["post"].connect(() => {
-				body_label.label = "# %s\n\n%s".printf(this.post.name, this.post.body ?? ""); 
+				body_label.label = "# %s\n\n%s".printf(this.post.post.name, this.post.post.body ?? ""); 
 			});
 		}
 	}

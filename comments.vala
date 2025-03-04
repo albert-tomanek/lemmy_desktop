@@ -15,12 +15,12 @@ namespace Lemmy.Desktop
         public API.Comment selected { get; set; }
         public API.Comment root_comment { get; set; default = new API.Comment.root(); }
 
-        public CommentsWindow(Gtk.Window parent, API.Session sess, API.Handles.Post post)
+        public CommentsWindow(Gtk.Window parent, API.Session sess, API.Structs.Post post)
         {
             Object(transient_for: parent);
 
             this.sess = sess;
-            this.title = @"Comments on \"$(post.name)\"";
+            this.title = @"Comments on \"$(post.post.name)\"";
 
             sess.get_comments.begin(post, root_comment, (_, rc) => {
                 sess.get_comments.end(rc);
@@ -51,21 +51,58 @@ namespace Lemmy.Desktop
 
             this.comment_view.factory = new_signal_list_item_factory(
                 (@this, li) => {
-                    var lab = new Gtk.Label(null) {
-                        halign = Gtk.Align.START,
-                        hexpand = true,
-                        wrap = true
-                    };
-                    markupify_label(lab);
-                    li.child = lab;
+                    li.child = new CommentWidget();
                 },
                 null,
                 (@this, li) => {
-                    ((Gtk.Label) li.child).label = ((API.Comment) li.item).data.comment?.content;
-                    ((Gtk.Label) li.child).margin_start = (int) ((API.Comment) li.item).depth * 40;
+                    ((CommentWidget) li.child).comment = ((API.Comment) li.item);
                 },
                 null
             );
+        }
+    }
+
+    class CommentWidget : Gtk.Box
+    {
+        public API.Comment comment { get; set; }
+        public Gtk.Label lab;
+
+        construct {
+            this.orientation = Gtk.Orientation.HORIZONTAL;
+
+            lab = new Gtk.Label(null) {
+                halign = Gtk.Align.START,
+                hexpand = true,
+                wrap = true
+            };
+
+            markupify_label(lab);
+            this.append(lab);
+
+            // Context menu
+			var popover = new Gtk.PopoverMenu.from_model(
+				(new Gtk.Builder.from_resource("/com/github/alberttomanek/lemmy-desktop/appmenu.ui")).get_object("comment_menu") as GLib.MenuModel
+			) {
+				has_arrow = false,
+				halign = Gtk.Align.START,
+			};
+            popover.set_parent(this);
+
+            var rclick = new Gtk.GestureClick() {
+				button = Gdk.BUTTON_SECONDARY,
+			};
+			rclick.pressed.connect((n, x, y) => {
+				popover.set_pointing_to(Gdk.Rectangle() { x = (int) x, y = (int) y, width = 0, height = 0 });
+				popover.popup();
+			});
+			this.add_controller(rclick);
+
+            //
+
+            notify["comment"].connect(() => {
+                lab.label = comment.data.comment?.content;
+                lab.margin_start = (int) comment.depth * 40;
+            });
         }
     }
 }
