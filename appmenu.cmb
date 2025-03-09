@@ -39,7 +39,9 @@
 	(1,42,"(item)",None,29,None,None,None,2,None,None),
 	(1,49,"(section)",None,23,None,None,None,3,None,None),
 	(1,50,"(item)",None,49,None,None,None,None,None,None),
-	(1,51,"(item)",None,49,None,None,None,1,None,None)
+	(1,51,"(item)",None,49,None,None,None,1,None,None),
+	(1,52,"(menu)","comm_menu",None,None,None,None,-1,None,None),
+	(1,53,"(item)",None,52,None,None,None,-1,None,None)
   </object>
   <object_property>
 	(1,2,"(submenu)","label","_Menu",None,None,None,None,None,None,None,None,None),
@@ -87,6 +89,8 @@
 	(1,50,"(item)","action","copy-url",None,None,None,None,None,None,None,None,None),
 	(1,50,"(item)","label","Copy _URL",None,None,None,None,None,None,None,None,None),
 	(1,51,"(item)","action","copy-text",None,None,None,None,None,None,None,None,None),
-	(1,51,"(item)","label","_Copy text",None,None,None,None,None,None,None,None,None)
+	(1,51,"(item)","label","_Copy text",None,None,None,None,None,None,None,None,None),
+	(1,53,"(item)","action","toggle-subscribed",None,None,None,None,None,None,None,None,None),
+	(1,53,"(item)","label","(_Un)subscribe",None,None,None,None,None,None,None,None,None)
   </object_property>
 </cambalache-project>

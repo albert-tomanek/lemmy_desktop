@@ -327,14 +327,6 @@ namespace Lemmy.API
         }
     }
 
-    class Post
-    {
-        public Post(Session sess)
-        {
-
-        }
-    }
-
     // JSON objects
 
     public class Structs.UserSubmission : Object, Json.Serializable
@@ -358,7 +350,7 @@ namespace Lemmy.API
 
     public class Structs.Post : Structs.UserSubmission, Json.Serializable
     {
-        public class PostField : Object, Json.Serializable   // https://stackoverflow.com/a/58461239/6130358
+        public class Data : Object, Json.Serializable   // https://stackoverflow.com/a/58461239/6130358
         {
             public int id { get; set; }
             public string name { get; set; }
@@ -370,9 +362,9 @@ namespace Lemmy.API
     
             // Need parsing
             public string published { get; set; }
-            public DateTime published_d { owned get { return new DateTime.from_iso8601(published, new TimeZone.utc()); } }  // Assume server time is UTC
+            public DateTime m_published { owned get { return new DateTime.from_iso8601(published, new TimeZone.utc()); } }  // Assume server time is UTC
         }
-        public PostField post { get; set; }
+        public Data post { get; set; }
     }
 
     public class Structs.Comment : Structs.UserSubmission, Json.Serializable
@@ -382,7 +374,7 @@ namespace Lemmy.API
             public int id { get; set; }
             public string content { get; set; }
             public string published { get; set; }   // ISO date
-            public DateTime published_d { owned get { return new DateTime.from_iso8601(published, new TimeZone.utc()); } }
+            public DateTime m_published { owned get { return new DateTime.from_iso8601(published, new TimeZone.utc()); } }
             public bool   deleted { get; set; }
             public string path { get; set; }
 
@@ -408,7 +400,11 @@ namespace Lemmy.API
 
     public class Structs.Community : Object, Json.Serializable
     {
-        public class Info : Object, Json.Serializable
+        public string subscribed { get; set; }
+        public bool   m_subscribed { get { return subscribed == "Subscribed"; } }
+        public bool   blocked { get; set; }
+
+        public class Data : Object, Json.Serializable
         {
             public int id { get; set; }
             public string name { get; set; }
@@ -424,7 +420,7 @@ namespace Lemmy.API
                 }
             }
         }
-        public Info community { get; set; }
+        public Data community { get; set; }
 
         public class Counts : Object, Json.Serializable
         {

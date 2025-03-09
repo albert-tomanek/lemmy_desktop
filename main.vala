@@ -271,7 +271,7 @@ namespace Lemmy.Desktop
 					},
 					null,
 					(@this, li) => {
-						var date = ((Structs.Post) li.item).post.published_d;
+						var date = ((Structs.Post) li.item).post.m_published;
 
 						((Gtk.Label) li.child).label = age_humanized(date);
 						get_li_cell(li).tooltip_text = date.format("%c");
@@ -429,6 +429,7 @@ namespace Lemmy.Desktop
 					{
 						var comm = row.item as Structs.Community;
 
+						widget.comm = comm;
 						widget.name.label = comm.community.title;
 						widget.tooltip_text = (comm.community.description != null) ? (comm.community.description.length <= 300) ? comm.community.description : null : null;
 						widget.set_icon.begin(comm.community.icon);
@@ -437,6 +438,7 @@ namespace Lemmy.Desktop
 					{
 						var spec = row.item as SpecialComm;
 
+						widget.comm = null;
 						widget.name.label = spec.name;
 						li.selectable = (spec.special_id != null);
 					}
@@ -465,6 +467,9 @@ namespace Lemmy.Desktop
 
 		class CommListRow : Gtk.Box
 		{
+			// This widget displays either a `Structs.Community` (in which case it will be set below), or a SpecialComm. The widgets are filled from outside this class.
+			public Structs.Community? comm { get; set; default = null; }
+
 			public Gtk.Label name = new Gtk.Label(null) {
 				halign = Gtk.Align.START,
 				hexpand = true,
@@ -474,6 +479,7 @@ namespace Lemmy.Desktop
 				width_request = 16,
 				height_request = 16
 			};
+			private Cancellable icon_download_process;
 
 			construct {
 				orientation = Gtk.Orientation.HORIZONTAL;
@@ -485,15 +491,50 @@ namespace Lemmy.Desktop
 
 			public async void set_icon(string? url)
 			{
+				this.icon_download_process.cancel();	// Different comms may be reassigned to this widget in quick succession, before the icon manages to load, so cancel the previous download to save bandwidth.
+
 				if (url != null)
 				{
 					this.icon.opacity = 1.0;
 					
-					var bytes = yield (App.icon_session).send_and_read_async(new Soup.Message ("GET", url), 0, null);
+					this.icon_download_process = new Cancellable();
+					var bytes = yield (App.icon_session).send_and_read_async(new Soup.Message ("GET", url), 0, this.icon_download_process);
 					this.icon.gicon = new GLib.BytesIcon(bytes);				
 				}
 				else
 					this.icon.opacity = 0.0;
+			}
+
+			// Right click stuff
+			static construct {
+				install_action("toggle-subscribed", null, (widg, action, param) => {
+					if (this.comm != null)
+					{
+					}
+				});
+			}
+
+			construct {
+				var popover = new Gtk.PopoverMenu.from_model(
+					(new Gtk.Builder.from_resource("/com/github/alberttomanek/lemmy-desktop/appmenu.ui")).get_object("comm_menu") as GLib.MenuModel
+				) {
+					has_arrow = false,
+					halign = Gtk.Align.START,
+					flags = Gtk.PopoverMenuFlags.NESTED,
+				};
+				popover.set_parent(this);
+	
+				var rclick = new Gtk.GestureClick() {
+					button = Gdk.BUTTON_SECONDARY,
+				};
+				rclick.pressed.connect((n, x, y) => {
+					if (this.comm != null)
+					{
+						popover.set_pointing_to(Gdk.Rectangle() { x = (int) x, y = (int) y, width = 0, height = 0 });
+						popover.popup();
+					}
+				});
+				this.add_controller(rclick);	
 			}
 		}
 
@@ -730,7 +771,7 @@ namespace Lemmy.Desktop
 
 			deep_bind(
 				this, "media-url",
-				this, typeof(PostView), "post", typeof(API.Structs.Post), "post", typeof(API.Structs.Post.PostField), "url"
+				this, typeof(PostView), "post", typeof(API.Structs.Post), "post", typeof(API.Structs.Post.Data), "url"
 			);
 			notify["media-url"].connect(() => {
 				if (media_url != null)

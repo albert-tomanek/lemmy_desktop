@@ -41,6 +41,7 @@
       </section>
       <section>
         <item>
+          <attribute name="action">win.new-post</attribute>
           <attribute name="label">_Create post...</attribute>
         </item>
       </section>
@@ -117,5 +118,11 @@
         <attribute name="label">_Copy text</attribute>
       </item>
     </section>
+  </menu>
+  <menu id="comm_menu">
+    <item>
+      <attribute name="action">toggle-subscribed</attribute>
+      <attribute name="label">(_Un)subscribe</attribute>
+    </item>
   </menu>
 </interface>
