@@ -20,6 +20,13 @@ namespace Lemmy.Desktop
 			var app = new App();
 			return app.run(args);
 		}
+
+		public static Soup.Session icon_session;
+
+		static construct {
+			icon_session = new Soup.Session();
+			icon_session.add_feature(new Soup.Cache(null, Soup.CacheType.SHARED));
+		}
 	}
 
 	private class AccountInfo : Object
@@ -176,6 +183,8 @@ namespace Lemmy.Desktop
 			this.notify_property("account");	// Just to initially populate the menu
 
 			// posts_list
+			string[] disallow = {"Title"};
+			attach_column_toggle_menu(this.posts_list, disallow);
 
 			this.posts_list.append_column(new Gtk.ColumnViewColumn(null, null) {
 				title = "Title",
@@ -438,7 +447,9 @@ namespace Lemmy.Desktop
 				if (url != null)
 				{
 					this.icon.opacity = 1.0;
-					yield set_image_to_url(this.icon, url);
+					
+					var bytes = yield (App.icon_session).send_and_read_async(new Soup.Message ("GET", url), 0, null);
+					this.icon.gicon = new GLib.BytesIcon(bytes);				
 				}
 				else
 					this.icon.opacity = 0.0;
@@ -500,6 +511,18 @@ namespace Lemmy.Desktop
 					}
 				}, null, null, null}
 			}, this);
+
+			/* Media */
+			this.add_action_entries({
+				{"copy-media-url", () => {
+					if (this.post_view.post.post.url != null)
+					{
+						Gdk.Display.get_default().get_clipboard().set_text(
+							this.post_view.post.post.url
+						);
+					}
+				}, null, null, null}
+			}, this);
 		}
 
 		delegate void OnLoginSuccessfulCb(string? token, string inst, string uname);
@@ -546,6 +569,55 @@ namespace Lemmy.Desktop
 			this.u_subscribed.remove_all();
 			session.get_subscribed.begin(this.u_subscribed);
 		}
+	}
+
+	void attach_column_toggle_menu(Gtk.ColumnView cv, [CCode (array_length = false, array_null_terminated = true)] string[] disallow)
+	{
+		Gtk.Widget title_row = null;
+		for (var children = cv.observe_children(), i = 0; i < children.get_n_items(); i++)
+		{
+			title_row = (Gtk.Widget) children.get_object(i);
+			if (title_row.get_type().name() == "GtkColumnViewRowWidget")
+				break;
+		}
+
+		var popover2 = new Gtk.Popover() {
+			child = new Gtk.ListView(null, null) {
+				model = new Gtk.NoSelection(cv.get_columns()),
+				factory = new_signal_list_item_factory(
+					(@this, li) => {
+						li.child = new Gtk.CheckButton() {
+							halign = Gtk.Align.START,
+							hexpand = true,
+						};
+					},
+					null,
+					(@this, li) => {
+						var col = li.item as Gtk.ColumnViewColumn;
+						var cb  = li.child as Gtk.CheckButton;
+
+						cb.label = col.title;
+						cb.sensitive = !GLib.strv_contains(disallow, col.title);
+
+						cb.get_data<Binding>("binding")?.unbind();
+						Binding b = col.bind_property("visible", cb, "active", BindingFlags.BIDIRECTIONAL|BindingFlags.SYNC_CREATE);
+						cb.set_data<Binding>("binding", b);
+					},
+					null
+				)
+			}
+		};
+		popover2.set_parent(title_row);
+
+		var rclick = new Gtk.GestureClick() {
+			button = Gdk.BUTTON_SECONDARY,
+			propagation_phase = Gtk.PropagationPhase.CAPTURE
+		};
+		rclick.pressed.connect((n, x, y) => {
+			popover2.set_pointing_to(Gdk.Rectangle() { x = (int) x, y = (int) y, width = 0, height = 0 });
+			popover2.popup();
+		});
+		title_row.add_controller(rclick);
 	}
 
 	[GtkTemplate (ui = "/com/github/alberttomanek/lemmy-desktop/settings.ui")]

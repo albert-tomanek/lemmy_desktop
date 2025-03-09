@@ -17,6 +17,9 @@
     <key name="paned2-pos" type="i">
       <default>450</default>
     </key>
+    <key name="post-list-cols" type="as">
+      <default>["title", "age", "user"]</default>
+    </key>
   </schema>
 
   <schema id="com.github.alberttomanek.lemmy-desktop.account">

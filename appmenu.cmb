@@ -80,6 +80,7 @@
 	(1,39,"(item)","label","_Block",None,None,None,None,None,None,None,None,None),
 	(1,40,"(item)","action","win.subscribe-comm",None,None,None,None,None,None,None,None,None),
 	(1,40,"(item)","label","_Subscribe",None,None,None,None,None,None,None,None,None),
+	(1,41,"(item)","action","win.new-post",None,None,None,None,None,None,None,None,None),
 	(1,41,"(item)","label","_Create post...",None,None,None,None,None,None,None,None,None),
 	(1,42,"(item)","action","save",None,None,None,None,None,None,None,None,None),
 	(1,42,"(item)","label","_Save",None,None,None,None,None,None,None,None,None),

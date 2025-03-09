@@ -77,12 +77,6 @@ string regex_replace(string text, string patt, string repl)
 }
 
 
-async void set_image_to_url(Gtk.Image img, string url)
-{
-    var bytes = yield (new Soup.Session()).send_and_read_async(new Soup.Message ("GET", url), 0, null);
-    img.gicon = new GLib.BytesIcon(bytes);
-}
-
 async void set_picture_to_url(Gtk.Picture pic, string url)
 {
     var bytes = yield (new Soup.Session()).send_and_read_async(new Soup.Message ("GET", url), 0, null);
