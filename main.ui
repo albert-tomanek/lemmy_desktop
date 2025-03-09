@@ -78,13 +78,9 @@
               <object class="GtkBox">
                 <property name="css-classes">toolbar</property>
                 <child>
-                  <object class="GtkSearchEntry">
+                  <object class="GtkSearchEntry" id="comm_search">
                     <property name="hexpand">True</property>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkButton">
-                    <property name="icon-name">list-add-symbolic</property>
+                    <property name="placeholder-text">Search communities</property>
                   </object>
                 </child>
               </object>

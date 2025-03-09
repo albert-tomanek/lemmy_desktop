@@ -82,31 +82,40 @@
     </submenu>
   </menu>
   <menu id="comment_menu">
-    <item>
-      <attribute name="label">_Copy text</attribute>
-    </item>
     <section>
       <item>
+        <attribute name="action">upvote</attribute>
         <attribute name="label">_Upvote</attribute>
       </item>
       <item>
+        <attribute name="action">downvote</attribute>
         <attribute name="label">_Downvote</attribute>
       </item>
       <item>
-        <attribute name="label">Save</attribute>
+        <attribute name="action">save</attribute>
+        <attribute name="label">_Save</attribute>
       </item>
     </section>
     <submenu>
       <attribute name="label">_User</attribute>
       <item>
+        <attribute name="action">block-user</attribute>
         <attribute name="label">Block</attribute>
       </item>
       <item>
+        <attribute name="action">message-user</attribute>
         <attribute name="label">Send message...</attribute>
       </item>
     </submenu>
-    <item>
-      <attribute name="label">Copy _URL</attribute>
-    </item>
+    <section>
+      <item>
+        <attribute name="action">copy-url</attribute>
+        <attribute name="label">Copy _URL</attribute>
+      </item>
+      <item>
+        <attribute name="action">copy-text</attribute>
+        <attribute name="label">_Copy text</attribute>
+      </item>
+    </section>
   </menu>
 </interface>

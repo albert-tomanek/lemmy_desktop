@@ -49,7 +49,7 @@
               </object>
             </child>
             <child>
-              <object class="GtkLabel" id="upvotes_label"/>
+              <object class="GtkLabel" id="votes_label"/>
             </child>
             <child>
               <object class="GtkToggleButton" id="b_downvote">

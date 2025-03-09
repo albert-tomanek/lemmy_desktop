@@ -67,6 +67,32 @@ namespace Lemmy.Desktop
         public API.Comment comment { get; set; }
         public MarkdownLabel lab = new MarkdownLabel();
 
+        static construct {
+            add_binding(Gdk.Key.space, Gdk.ModifierType.NO_MODIFIER_MASK, (widg, args) => {
+                var comt = (widg as CommentWidget).comment;
+                comt.collapsed = !comt.collapsed;
+                return true;
+            }, null);
+
+            install_action("collapse", null, (widg, action, param) => {
+                var comt = (widg as CommentWidget).comment;
+                comt.collapsed = !comt.collapsed;
+            });
+
+            install_action("copy-text", null, (widg, action, param) => {
+                var self = widg as CommentWidget;
+                Gdk.Display.get_default().get_clipboard().set_text(
+                    self.comment.data.comment?.content
+                );
+            });
+            install_action("copy-url", null, (widg, action, param) => {
+                var self = widg as CommentWidget;
+                Gdk.Display.get_default().get_clipboard().set_text(
+                    self.comment.data.comment?.ap_id
+                );
+            });
+        }
+
         construct {
             this.orientation = Gtk.Orientation.HORIZONTAL;
             this.margin_start = 4;
@@ -80,6 +106,7 @@ namespace Lemmy.Desktop
 			) {
 				has_arrow = false,
 				halign = Gtk.Align.START,
+                flags = Gtk.PopoverMenuFlags.NESTED,
 			};
             popover.set_parent(this);
 
@@ -91,6 +118,25 @@ namespace Lemmy.Desktop
 				popover.popup();
 			});
 			this.add_controller(rclick);
+
+            var dclick = new Gtk.GestureClick() {
+				button = Gdk.BUTTON_PRIMARY,
+			};
+			dclick.released.connect((n, x, y) => {
+                if (n == 2)
+                    this.comment.collapsed = !this.comment.collapsed;
+            });
+			this.add_controller(dclick);
+
+            var kb = new Gtk.EventControllerKey();
+            kb.key_pressed.connect((val, code, state) => {
+                if (val == Gdk.Key.space)
+                {
+                    stdout.printf("space\n");
+                    this.comment.collapsed = !this.comment.collapsed;
+                }
+            });
+            this.add_controller(kb);
 
             //
 

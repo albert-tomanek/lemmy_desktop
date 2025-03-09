@@ -14,7 +14,7 @@
 	(1,11,"GtkBox","media_hole",10,None,None,None,-1,None,None),
 	(1,12,"GtkBox",None,3,None,"action-end",None,-1,None,None),
 	(1,13,"GtkToggleButton","b_upvote",12,None,None,None,-1,None,None),
-	(1,14,"GtkLabel","upvotes_label",12,None,None,None,-1,None,None),
+	(1,14,"GtkLabel","votes_label",12,None,None,None,-1,None,None),
 	(1,15,"GtkToggleButton","b_downvote",12,None,None,None,2,None,None),
 	(1,16,"GtkToggleButton","b_save_post",12,None,None,None,3,None,None)
   </object>

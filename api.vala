@@ -136,6 +136,7 @@ namespace Lemmy.API
 
     class Comment : ListModel, Object
     {
+        // Comment tree info
         weak Comment? parent = null;
         public bool is_root { get { return parent == null; } }
 
@@ -146,6 +147,7 @@ namespace Lemmy.API
         public Structs.Comment? data { get; construct; }
         public uint path_id { get; private set; }
 
+        // Configurable props
         public enum Sort
         {
             TOP,
@@ -153,6 +155,7 @@ namespace Lemmy.API
         }
 
         public Sort sort { get; set; }
+        public bool collapsed { get; set; default = false; }
 
         public Comment(Structs.Comment data)
         {
@@ -177,6 +180,16 @@ namespace Lemmy.API
                 var path_parts = this.data.comment.path.split(".");
                 this.path_id = uint.parse(path_parts[path_parts.length - 1]);
             }
+
+            notify["collapsed"].connect(() => {
+                if (!this.is_root)
+                {
+                    if (this.collapsed == true)
+                        this.items_changed(1, flat.get_n_items(), 0);
+                    else
+                        this.items_changed(1, 0, flat.get_n_items());
+                }
+            });
         }
 
         public Object? get_item (uint idx) 
@@ -194,10 +207,9 @@ namespace Lemmy.API
 
         public uint get_n_items()
         {
-            if (this.is_root)
-                return flat.get_n_items();
-            else
-                return flat.get_n_items() + 1;
+            int this_len = this.is_root ? 0 : 1;
+
+            return (this.collapsed) ? this_len : this_len + flat.get_n_items();
         }
 
         //
@@ -284,6 +296,19 @@ namespace Lemmy.API
             return get_n_items() - old_length;
         }
 
+        public SubmissionIter exhaust()
+        {
+            exhaust_async.begin();
+
+            return this;
+        }
+
+        private async void exhaust_async()
+        {
+            for (uint more = 1; more > 0;)
+                more = yield get_more_posts();
+        }
+
         // ListModel
 
         public Type get_item_type()
@@ -362,6 +387,7 @@ namespace Lemmy.API
     
             // Need parsing
             public string published { get; set; }
+            public DateTime published_d { owned get { return new DateTime.from_iso8601(published, new TimeZone.utc()); } }  // Assume server time is UTC
         }
         public PostField post { get; set; }
     }
@@ -373,6 +399,7 @@ namespace Lemmy.API
             public int id { get; set; }
             public string content { get; set; }
             public string published { get; set; }   // ISO date
+            public DateTime published_d { owned get { return new DateTime.from_iso8601(published, new TimeZone.utc()); } }
             public bool   deleted { get; set; }
             public string path { get; set; }
 

@@ -70,6 +70,7 @@ namespace Lemmy.Desktop
 		[GtkChild] unowned Gtk.ColumnView posts_list;
 
 		//  [GtkChild] unowned GLib.MenuModel app_menu;
+		[GtkChild] unowned Gtk.SearchEntry comm_search;
 		[GtkChild] unowned Gtk.ListView comms_list;
 		[GtkChild] unowned Gtk.SingleSelection comm_selection;
 
@@ -196,7 +197,32 @@ namespace Lemmy.Desktop
 						var post = (Structs.Post) li.item;
 
 						lab.label = (post.post.featured_community) ? @"<b>$(post.post.name)</b>" : post.post.name;
-						lab.tooltip_text = post.post.name;
+						get_li_cell(li).tooltip_text = post.post.name;
+					},
+					null
+				)
+			});
+
+			this.posts_list.append_column(new Gtk.ColumnViewColumn(null, null) {
+				title = "Age",
+				expand = false,
+				resizable = false,
+				visible = true,
+
+				factory = new_signal_list_item_factory(
+					(@this, li) => {
+						li.child = new Gtk.Label(null) {
+							halign = Gtk.Align.START,
+							hexpand = true,
+							ellipsize = Pango.EllipsizeMode.END
+						};
+					},
+					null,
+					(@this, li) => {
+						var date = ((Structs.Post) li.item).post.published_d;
+
+						((Gtk.Label) li.child).label = age_humanized(date);
+						get_li_cell(li).tooltip_text = date.format("%c");
 					},
 					null
 				)
@@ -266,6 +292,7 @@ namespace Lemmy.Desktop
 				},
 				new SpecialComm() {
 					name = "Saved",
+					special_id = "saved",
 				},
 				new SpecialComm() {
 					name = "Subscribed",
@@ -276,7 +303,17 @@ namespace Lemmy.Desktop
 				name = "User"
 			});
 
-			this.comm_selection.model = new Gtk.TreeListModel(root, false, true, item => (item as SpecialComm)?.children);
+			var contents_usual = this.comm_selection.model = new Gtk.TreeListModel(root, false, true, item => (item as SpecialComm)?.children);
+
+			this.comm_search.search_changed.connect(() => {
+				if (this.comm_search.text == "")
+					this.comm_selection.model = contents_usual;
+				else
+					this.comm_selection.model = new Gtk.TreeListModel(
+						new SubmissionIter.on_url(session, @"https://$(session.inst)/api/v3/search?type_=Communities&q=" + this.comm_search.text.replace(" ", "%20"), "$.communities[*].community", typeof(API.Handles.Community)).exhaust(),
+						false, true, item => null
+					);
+			});
 
 			this.comm_selection.notify["selected-item"].connect(() => {
 				Object item = ((Gtk.TreeListRow) this.comm_selection.selected_item).item;
@@ -290,9 +327,12 @@ namespace Lemmy.Desktop
 				else if (item is SpecialComm)
 				{
 					var sc = item as SpecialComm;
+
 					if (sc.special_id == "subscribed")
 						gi = new SubmissionIter.on_url(session, @"https://$(session.inst)/api/v3/post/list?type_=Subscribed", "$.posts[*]", typeof(API.Structs.Post));
-					if (sc.special_id == "my-posts")
+					else if (sc.special_id == "saved")
+						gi = new SubmissionIter.on_url(session, @"https://$(session.inst)/api/v3/post/list?saved_only=true", "$.posts[*]", typeof(API.Structs.Post));
+					else if (sc.special_id == "my-posts")
 						gi = new SubmissionIter.on_url(session, @"https://$(session.inst)/api/v3/user?username=$(session.uname)", "$.posts[*]", typeof(API.Structs.Post));
 					else
 						return;
@@ -320,7 +360,6 @@ namespace Lemmy.Desktop
 
 					expander.set_list_row(row);		// Binds the expander arrow to this TreeListRow
 
-					//  if (row.get_parent()?.item == u_subscribed)	// If this is an item within the "subscribed" list
 					if (row.item is Handles.Community)
 					{
 						var comm = row.item as Handles.Community;
@@ -537,6 +576,8 @@ namespace Lemmy.Desktop
 		[GtkChild] public unowned Gtk.Box  text_hole;
 		[GtkChild] public unowned Gtk.Box  media_hole;
 
+		[GtkChild] public unowned Gtk.Label votes_label;
+
 		MarkdownLabel md_label = new MarkdownLabel() { selectable = true };
 		public WebKit.WebView webview = new WebKit.WebView() { hexpand = true, vexpand = true };
 
@@ -545,6 +586,7 @@ namespace Lemmy.Desktop
 		internal string? media_url { get; set; }
 		internal string body  { get; set; }
 		internal string title { get; set; }
+		internal int votes { get; set; }
 
 		construct {
 			media_hole.append(webview);
@@ -556,13 +598,17 @@ namespace Lemmy.Desktop
 			);
 			notify["media-url"].connect(() => {
 				if (media_url != null)
-				{
 					webview.load_uri(media_url);
-				}
 				else
-				{
 					webview.load_uri("about:blank");
-				}
+			});
+
+			deep_bind(
+				this, "votes",
+				this, typeof(PostView), "post", typeof(API.Structs.Post), "counts", typeof(API.Structs.UserSubmission.Counts), "score"
+			);
+			notify["votes"].connect(() => {
+				votes_label.label = @"$votes votes";
 			});
 
 			notify["post"].connect(() => {

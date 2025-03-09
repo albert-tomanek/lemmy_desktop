@@ -88,3 +88,37 @@ async void set_picture_to_url(Gtk.Picture pic, string url)
     var bytes = yield (new Soup.Session()).send_and_read_async(new Soup.Message ("GET", url), 0, null);
     pic.paintable = Gdk.Texture.from_bytes(bytes);
 }
+
+
+public Gtk.Widget get_li_cell(Gtk.ListItem li)
+{
+	return li.child.parent;
+}
+
+public Gtk.Widget get_li_row(Gtk.ListItem li)
+{
+	return li.child.parent.parent;
+}
+
+
+public string age_humanized(DateTime d)
+{
+	TimeSpan diff = (new DateTime.now()).difference(d);
+
+	if (diff < TimeSpan.SECOND)
+		return "now";
+	else if (diff < TimeSpan.MINUTE)
+		return @"$(diff / TimeSpan.SECOND) seconds";
+	else if (diff < TimeSpan.HOUR)
+		return @"$(diff / TimeSpan.MINUTE) minutes";
+	else if (diff < TimeSpan.DAY)
+		return @"$(diff / TimeSpan.HOUR) hours";
+	else if (diff < (TimeSpan.DAY * 7))
+		return @"$(diff / TimeSpan.DAY) days";
+	else if (diff < (TimeSpan.DAY * 28))
+		return @"$(diff / (TimeSpan.DAY * 7)) weeks";
+	else if (diff < (TimeSpan.DAY * 365))
+		return @"$(diff / (TimeSpan.DAY * 28)) months";
+	else
+		return @"$(diff / (TimeSpan.DAY * 365)) years";
+}
