@@ -40,7 +40,17 @@
               <object class="GtkBox">
                 <property name="spacing">6</property>
                 <child>
+                  <object class="GtkToggleButton" id="b_upvote">
+                    <property name="icon-name">go-up</property>
+                  </object>
+                </child>
+                <child>
                   <object class="GtkLabel" id="votes_label"/>
+                </child>
+                <child>
+                  <object class="GtkToggleButton" id="b_downvote">
+                    <property name="icon-name">go-down</property>
+                  </object>
                 </child>
               </object>
             </property>

@@ -19,14 +19,14 @@ namespace Lemmy.API
         var body = @"{\"username_or_email\": \"$uname\", \"password\": \"$passwd\"}";
         msg.set_request_body_from_bytes("application/json", new Bytes (body.data));
 
-        var response = yield soup.send_and_read_async(msg, 0, null);
-        stdout.printf("%s\n", (string) response.get_data().copy());
-        var? token = json_get("$.jwt", (string) response.get_data().copy()).get_string();
+        var json_text = get_json_text(yield soup.send_and_read_async(msg, 0, null));
+        stdout.printf("%s\n", json_text);
+        var? token = json_get("$.jwt", json_text).get_string();
 
         if (token != null)
             return token;
         else
-            throw new APIError.LOGIN(json_get("$.error", (string) response.get_data().copy()).get_string());
+            throw new APIError.LOGIN(json_get("$.error", json_text).get_string());
     }
 
     async bool check_token(string inst, string token) throws Error
@@ -38,12 +38,10 @@ namespace Lemmy.API
         var request = new Soup.Message ("GET", @"https://$inst/api/v3/user/validate_auth");
         request.request_headers.append("Authorization", "Bearer " + token);
 
-        var response = yield soup.send_and_read_async(request, 0, null);
-        var response_text = (string) response.get_data().copy();
-        response_text = response_text[:response_text.last_index_of_char('}')+1];
-        stdout.printf("%s\n", response_text);
+        var json_text = get_json_text(yield soup.send_and_read_async(request, 0, null));
+        stdout.printf("%s\n", json_text);
 
-        bool? success = json_get("$.success", response_text).get_boolean();
+        bool? success = json_get("$.success", json_text).get_boolean();
 
         if (success != null)
             return success;
@@ -429,4 +427,11 @@ namespace Lemmy.API
         }
         public Counts counts { get; set; }
     }
+}
+
+string get_json_text(Bytes response)
+{
+    var response_text = (string) response.get_data().copy();
+    response_text = response_text[:response_text.last_index_of_char('}')+1];    // The length of the Bytes isn't set correctly for some reason.
+    return response_text;
 }

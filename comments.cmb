@@ -14,7 +14,9 @@
 	(1,15,"GtkCenterBox",None,2,None,None,None,1,None,None),
 	(1,16,"GtkLinkButton","user_button",15,None,None,None,None,None,None),
 	(1,17,"GtkBox",None,15,None,None,None,None,None,None),
-	(1,18,"GtkLabel","votes_label",17,None,None,None,None,None,None)
+	(1,20,"GtkToggleButton","b_upvote",17,None,None,None,2,None,None),
+	(1,21,"GtkLabel","votes_label",17,None,None,None,2,None,None),
+	(1,22,"GtkToggleButton","b_downvote",17,None,None,None,2,None,None)
   </object>
   <object_property>
 	(1,1,"GtkWindow","default-height","500",None,None,None,None,None,None,None,None,None),
@@ -31,6 +33,8 @@
 	(1,15,"GtkCenterBox","center-widget",None,None,None,None,None,16,None,None,None,None),
 	(1,15,"GtkCenterBox","end-widget",None,None,None,None,None,17,None,None,None,None),
 	(1,15,"GtkWidget","css-classes","toolbar",None,None,None,None,None,None,None,None,None),
-	(1,17,"GtkBox","spacing","6",None,None,None,None,None,None,None,None,None)
+	(1,17,"GtkBox","spacing","6",None,None,None,None,None,None,None,None,None),
+	(1,20,"GtkButton","icon-name","go-up",None,None,None,None,None,None,None,None,None),
+	(1,22,"GtkButton","icon-name","go-down",None,None,None,None,None,None,None,None,None)
   </object_property>
 </cambalache-project>

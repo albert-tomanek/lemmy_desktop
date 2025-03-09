@@ -113,40 +113,43 @@ namespace Lemmy.Desktop
 					return;
 				}
 
-				API.check_token.begin(this.account.inst, this.account.jwt, (_, rc) => {
-					try {
-						if (API.check_token.end(rc))
-						{
-							this.session = new API.Session(this.account.inst, this.account.uname, this.account.jwt);
+				if (this.session == null)	// This obtains the token needed to create a session by asking the user to log in again. We might have already obtained the token in another way in which case the session will have already been set.
+				{
+					API.check_token.begin(this.account.inst, this.account.jwt, (_, rc) => {
+						try {
+							if (API.check_token.end(rc))
+							{
+								this.session = new API.Session(this.account.inst, this.account.uname, this.account.jwt);
+							}
+							else
+							{
+								// Ask them for their password again, just as if logging in
+								this.run_login_dialog(this.account, (new_jwt, inst, uname) => {
+									if (new_jwt != null)
+									{
+										this.session = new API.Session(this.account.inst, this.account.uname, new_jwt);
+										this.account.jwt = new_jwt;
+									}
+									else
+									{
+										this.account = null;
+									}
+								});
+							}
 						}
-						else
+						catch (Error err)
 						{
-							// Ask them for their password again, just as if logging in
-							this.run_login_dialog(this.account, (new_jwt, inst, uname) => {
-								if (new_jwt != null)
-								{
-									this.session = new API.Session(this.account.inst, this.account.uname, new_jwt);
-									this.account.jwt = new_jwt;
-								}
-								else
-								{
-									this.account = null;
-								}
-							});
+							errbox(this, "Login error", err.message);
 						}
-					}
-					catch (Error err)
-					{
-						errbox(this, "Login error", err.message);
-					}
-				});
+					});
+				}
 			});
 			notify["session"].connect(on_new_login);
 
 			// Initial app state
 			var current_account = sett.get_string("current-account");
 			this.notify["account"].connect(() => {
-				sett.set_string("current-account", this.account.internal_id);
+				sett.set_string("current-account", (this.account != null) ? this.account.internal_id : "");
 			});
 
 			if (current_account != "")
@@ -359,7 +362,7 @@ namespace Lemmy.Desktop
 
 			/* Search view */
 
-			var sorter_by_instance = new Gtk.SortListModel(null, null);
+			var sorter_by_instance = new Gtk.SortListModel(null, null) { incremental = true };
 			GLib.CompareDataFunc<API.Structs.Community> cmp_subs = (p, q) => q.counts.subscribers - p.counts.subscribers;
 			sorter_by_instance.sorter = new Gtk.CustomSorter(cmp_subs);	// Sort whithin a secion (by subscriber count)
 			//  sorter_by_instance.section_sorter = Gtk.CustomSorter(
@@ -432,7 +435,15 @@ namespace Lemmy.Desktop
 						widget.comm = comm;
 						widget.name.label = comm.community.title;
 						widget.tooltip_text = (comm.community.description != null) ? (comm.community.description.length <= 300) ? comm.community.description : null : null;
-						widget.set_icon.begin(comm.community.icon);
+						widget.set_icon.begin(comm.community.icon, (_, rc) => {
+							try {
+								widget.set_icon.end(rc);
+							}
+							catch (Error err)
+							{
+								debug(@"Couldn't fetch icon for `$(comm.community.actor_id)`. " + err.message);
+							}
+						});
 					}
 					else if (row.item is SpecialComm)
 					{
@@ -489,7 +500,7 @@ namespace Lemmy.Desktop
 				this.append(name);
 			}
 
-			public async void set_icon(string? url)
+			public async void set_icon(string? url) throws Error
 			{
 				this.icon_download_process.cancel();	// Different comms may be reassigned to this widget in quick succession, before the icon manages to load, so cancel the previous download to save bandwidth.
 
@@ -499,7 +510,9 @@ namespace Lemmy.Desktop
 					
 					this.icon_download_process = new Cancellable();
 					var bytes = yield (App.icon_session).send_and_read_async(new Soup.Message ("GET", url), 0, this.icon_download_process);
-					this.icon.gicon = new GLib.BytesIcon(bytes);				
+					var? icon = new GLib.BytesIcon(bytes);
+					if (icon != null)
+						this.icon.gicon = icon;
 				}
 				else
 					this.icon.opacity = 0.0;
@@ -527,6 +540,7 @@ namespace Lemmy.Desktop
 					this.run_login_dialog(null, (token, inst, uname) => {
 						if (token != null)
 						{
+							this.session = new API.Session(inst, uname, token);
 							this.account = new AccountInfo.create() {
 								inst = inst,
 								uname = uname
@@ -547,6 +561,7 @@ namespace Lemmy.Desktop
 					this.account_ids = ids;
 
 					this.account = null;
+					this.session = null;
 				}, null, null, null}
 			}, this);
 
