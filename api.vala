@@ -75,9 +75,9 @@ namespace Lemmy.API
         }
 
         public async void get_subscribed(ListStore list) throws Error
-        requires(list.item_type == typeof(Handles.Community))
+        requires(list.item_type == typeof(Structs.Community))
         {
-            yield fetch_all_paged(@"https://$(inst)/api/v3/community/list?type_=Subscribed", "$.communities..community", typeof(Handles.Community), list);
+            yield fetch_all_paged(@"https://$(inst)/api/v3/community/list?type_=Subscribed", "$.communities[*]", typeof(Structs.Community), list);
         }
 
         public async void get_comments(Structs.Post post, Comment root) throws Error
@@ -337,23 +337,6 @@ namespace Lemmy.API
 
     // JSON objects
 
-    public class Handles.Community : Object, Json.Serializable
-    {
-        public int id { get; set; }
-        public string name { get; set; }
-        public string title { get; set; }
-        public string? description { get; set; default = null; }
-        public string actor_id { get; set; }    // The link to the community in the HTML client
-        public bool nsfw { get; set; }
-        public string? icon { get; set; default = null; }
-
-        public string instance {
-            owned get {
-                return Uri.parse(actor_id, UriFlags.NONE).get_host().dup();
-            }
-        }
-    }
-
     public class Structs.UserSubmission : Object, Json.Serializable
     {
         public class Creator : Object, Json.Serializable
@@ -421,5 +404,33 @@ namespace Lemmy.API
                     return i_parts[1:i_parts.length - 1];
             }
         }
+    }
+
+    public class Structs.Community : Object, Json.Serializable
+    {
+        public class Info : Object, Json.Serializable
+        {
+            public int id { get; set; }
+            public string name { get; set; }
+            public string title { get; set; }
+            public string? description { get; set; default = null; }
+            public string actor_id { get; set; }    // The link to the community in the HTML client
+            public bool nsfw { get; set; }
+            public string? icon { get; set; default = null; }
+    
+            public string instance {
+                owned get {
+                    return Uri.parse(actor_id, UriFlags.NONE).get_host().dup();
+                }
+            }
+        }
+        public Info community { get; set; }
+
+        public class Counts : Object, Json.Serializable
+        {
+            public int subscribers { get; set; }
+            public int posts { get; set; }
+        }
+        public Counts counts { get; set; }
     }
 }

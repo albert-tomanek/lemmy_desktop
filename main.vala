@@ -83,7 +83,7 @@ namespace Lemmy.Desktop
 		public API.Structs.Post current_post { get; set; }
 		//  public Community current_comm { get; set; }
 
-		ListStore u_subscribed = new ListStore(typeof(Handles.Community));
+		ListStore u_subscribed = new ListStore(typeof(Structs.Community));
 
 		construct {
 			this.init_ui();
@@ -283,6 +283,8 @@ namespace Lemmy.Desktop
 		{
 			// https://stackoverflow.com/a/75047830/6130358
 
+			/* User view */
+
 			var root = new ListStore(typeof(SpecialComm));
 
 			root.append(new SpecialComm.with_children({
@@ -303,26 +305,39 @@ namespace Lemmy.Desktop
 				name = "User"
 			});
 
-			var contents_usual = this.comm_selection.model = new Gtk.TreeListModel(root, false, true, item => (item as SpecialComm)?.children);
+			var user_view = this.comm_selection.model = new Gtk.TreeListModel(root, false, true, item => (item as SpecialComm)?.children);
+
+			/* Search view */
+
+			var sorter_by_instance = new Gtk.SortListModel(null, null);
+			GLib.CompareDataFunc<API.Structs.Community> cmp_subs = (p, q) => q.counts.subscribers - p.counts.subscribers;
+			sorter_by_instance.sorter = new Gtk.CustomSorter(cmp_subs);	// Sort whithin a secion (by subscriber count)
+			//  sorter_by_instance.section_sorter = Gtk.CustomSorter(
+			//  	(p, q) => (p.instance == q.instance) ? 0 : -1
+			//  );
+
+			var search_view = new Gtk.TreeListModel(sorter_by_instance, false, true, item => null);
+
+			//
 
 			this.comm_search.search_changed.connect(() => {
 				if (this.comm_search.text == "")
-					this.comm_selection.model = contents_usual;
+					this.comm_selection.model = user_view;
 				else
-					this.comm_selection.model = new Gtk.TreeListModel(
-						new SubmissionIter.on_url(session, @"https://$(session.inst)/api/v3/search?type_=Communities&q=" + this.comm_search.text.replace(" ", "%20"), "$.communities[*].community", typeof(API.Handles.Community)).exhaust(),
-						false, true, item => null
-					);
+				{
+					sorter_by_instance.model = new SubmissionIter.on_url(session, @"https://$(session.inst)/api/v3/search?type_=Communities&q=" + this.comm_search.text.replace(" ", "%20"), "$.communities[*]", typeof(API.Structs.Community)).exhaust();
+					this.comm_selection.model = search_view;
+				}
 			});
 
 			this.comm_selection.notify["selected-item"].connect(() => {
 				Object item = ((Gtk.TreeListRow) this.comm_selection.selected_item).item;
 				SubmissionIter gi;
 
-				if (item is Handles.Community)
+				if (item is Structs.Community)
 				{
-					var grp = item as Handles.Community;
-					gi = new SubmissionIter.group(session, grp.instance, grp.name);
+					var grp = item as Structs.Community;
+					gi = new SubmissionIter.group(session, grp.community.instance, grp.community.name);
 				}
 				else if (item is SpecialComm)
 				{
@@ -360,13 +375,13 @@ namespace Lemmy.Desktop
 
 					expander.set_list_row(row);		// Binds the expander arrow to this TreeListRow
 
-					if (row.item is Handles.Community)
+					if (row.item is Structs.Community)
 					{
-						var comm = row.item as Handles.Community;
+						var comm = row.item as Structs.Community;
 
-						widget.name.label = comm.title;
-						widget.tooltip_text = (comm.description != null) ? (comm.description.length <= 300) ? comm.description : null : null;
-						widget.set_icon.begin(comm.icon);
+						widget.name.label = comm.community.title;
+						widget.tooltip_text = (comm.community.description != null) ? (comm.community.description.length <= 300) ? comm.community.description : null : null;
+						widget.set_icon.begin(comm.community.icon);
 					}
 					else if (row.item is SpecialComm)
 					{
