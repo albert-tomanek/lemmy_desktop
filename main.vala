@@ -504,38 +504,6 @@ namespace Lemmy.Desktop
 				else
 					this.icon.opacity = 0.0;
 			}
-
-			// Right click stuff
-			static construct {
-				install_action("toggle-subscribed", null, (widg, action, param) => {
-					if (this.comm != null)
-					{
-					}
-				});
-			}
-
-			construct {
-				var popover = new Gtk.PopoverMenu.from_model(
-					(new Gtk.Builder.from_resource("/com/github/alberttomanek/lemmy-desktop/appmenu.ui")).get_object("comm_menu") as GLib.MenuModel
-				) {
-					has_arrow = false,
-					halign = Gtk.Align.START,
-					flags = Gtk.PopoverMenuFlags.NESTED,
-				};
-				popover.set_parent(this);
-	
-				var rclick = new Gtk.GestureClick() {
-					button = Gdk.BUTTON_SECONDARY,
-				};
-				rclick.pressed.connect((n, x, y) => {
-					if (this.comm != null)
-					{
-						popover.set_pointing_to(Gdk.Rectangle() { x = (int) x, y = (int) y, width = 0, height = 0 });
-						popover.popup();
-					}
-				});
-				this.add_controller(rclick);	
-			}
 		}
 
 		void init_actions()
