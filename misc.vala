@@ -116,3 +116,21 @@ public string age_humanized(DateTime d)
 	else
 		return @"$(diff / (TimeSpan.DAY * 365)) years";
 }
+
+
+string[] strv_append(string[] p, string i)
+{
+	string[] q = p;
+	q += i;
+	return q;
+}
+
+string[] strv_remove(string[] p, string i)
+{
+	string[] q = {};
+	foreach (var a in p)
+		if (a != i)
+			q += a;
+
+	return q;
+}
